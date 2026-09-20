@@ -3,378 +3,195 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rosita - Reporte Consolidado 30 días</title>
+<title>Reporte diario — Rosita</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
-<style>
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-  .tab-active{border-bottom:2px solid #111827;color:#111827}
-  .tab-inactive{color:#6b7280}
-</style>
+<script src="./config.js"></script>
 </head>
-<body class="bg-gray-50 min-h-screen">
-<div class="max-w-6xl mx-auto px-4 py-4">
-  <!-- Header -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-    <div>
-      <h1 class="text-2xl font-bold">Rosita - Reporte Diario</h1>
-      <p class="text-sm text-gray-600">Consolidado últimos 30 días • Aracely, Ibeth y Carmita • Listo para Google Sheets</p>
-    </div>
-    <div class="flex gap-2">
-      <button id="tab-consolidado" class="px-4 py-2 font-medium tab-active">📊 Consolidado 30 días</button>
-      <button id="tab-form" class="px-4 py-2 font-medium tab-inactive">📝 Nuevo Reporte</button>
-    </div>
-  </div>
+<body class="bg-[#fbf7f2] min-h-screen">
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <div class="bg-white rounded-2xl shadow-sm border p-6 md:p-8">
+    <h1 class="text-2xl font-bold text-gray-900">Reporte diario — Rosita</h1>
+    <p class="text-sm text-gray-600 mt-1">Reemplaza el Google Form. Eligen su nombre (Aracely, Ibeth, Carmita) y pueden enviar varios reportes el mismo día.</p>
 
-  <!-- CONFIG BANNER -->
-  <div id="configBanner" class="hidden mt-4 bg-red-50 border border-red-200 p-4 rounded-xl">
-    <p class="font-bold text-red-800 text-sm">Falta configurar Supabase</p>
-    <p class="text-xs text-red-700 mt-1">1. Ve a Supabase Dashboard > Project Settings > API > copia la clave <b>anon public</b><br>2. Pégala abajo. Se guardará en este navegador y en el archivo para GitHub.</p>
-    <div class="mt-2 flex gap-2">
-      <input id="anonKeyInput" placeholder="Pega aquí tu anon key (eyJ...)" class="flex-1 border rounded px-3 py-2 text-xs">
-      <button id="saveKeyBtn" class="px-4 py-2 bg-black text-white rounded text-sm">Guardar</button>
-    </div>
-    <p class="text-[11px] text-gray-500 mt-2">Tu URL ya está configurada: https://ynmikutonikslgtdlbbz.supabase.co — solo falta la clave anon.</p>
-  </div>
-
-  <!-- CONSOLIDADO VIEW -->
-  <div id="view-consolidado" class="mt-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white p-4 rounded-xl border shadow-sm">
-        <div class="text-[11px] text-gray-500 uppercase">Total reportes últimos 30 días</div>
-        <div id="total" class="text-3xl font-bold mt-1">—</div>
-        <div id="dias" class="text-xs text-gray-500 mt-1"></div>
-      </div>
-      <div class="bg-white p-4 rounded-xl border shadow-sm">
-        <div class="text-[11px] text-gray-500 uppercase">Por cuidadora (todas incluidas)</div>
-        <div id="porCuidadora" class="mt-2 space-y-2"></div>
-      </div>
-      <div class="bg-white p-4 rounded-xl border shadow-sm">
-        <div class="text-[11px] text-gray-500 uppercase">Exportar a Google Sheets</div>
-        <div class="mt-3 space-y-2">
-          <button id="btnCSV" class="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">⬇ Descargar CSV (para Sheets)</button>
-          <button id="btnCopy" class="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">📋 Copiar y pegar en Sheets</button>
-          <p class="text-[11px] text-gray-500">CSV mantiene las 3 cuidadoras en una sola hoja. Para Google Sheets: Abre sheets.google.com → Archivo → Importar → Subir CSV.</p>
+    <form id="form" class="mt-6 space-y-6">
+      <!-- Cuidadora y fecha -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium">Cuidadora *</label>
+          <select id="cuidadora" required class="mt-1 w-full border rounded-xl px-3 py-2.5 text-sm bg-white">
+            <option value="">Selecciona tu nombre</option>
+            <option value="Aracely">Aracely</option>
+            <option value="Ibeth">Ibeth</option>
+            <option value="Carmita">Carmita</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Fecha y hora del reporte *</label>
+          <input type="datetime-local" id="fecha" required class="mt-1 w-full border rounded-xl px-3 py-2.5 text-sm">
         </div>
       </div>
-    </div>
 
-    <div class="mt-4 bg-white p-3 rounded-xl border flex flex-wrap gap-2 items-end">
-      <div><label class="text-[11px] text-gray-600">Desde</label><input type="date" id="desde" class="border rounded px-2 py-1 text-sm block"></div>
-      <div><label class="text-[11px] text-gray-600">Hasta</label><input type="date" id="hasta" class="border rounded px-2 py-1 text-sm block"></div>
-      <button id="btnFiltrar" class="px-4 py-1.5 bg-gray-900 text-white rounded text-sm">Actualizar</button>
-      <div id="status" class="text-xs text-gray-600 ml-2"></div>
-    </div>
+      <hr class="border-gray-100">
 
-    <div class="mt-4 bg-white rounded-xl border shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-xs" id="tabla"><thead id="thead" class="bg-gray-100"></thead><tbody id="tbody"></tbody></table>
+      <!-- Noche -->
+      <div>
+        <h2 class="font-semibold text-gray-800">Noche</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+          <div>
+            <label class="text-sm">Hora en que se acostó</label>
+            <input type="time" id="hora_acostarse" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="text-sm">¿Cómo se durmió? *</label>
+            <select id="como_durmio" required class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
+              <option value="">—</option>
+              <option>Fácilmente</option>
+              <option>Con dificultad</option>
+              <option>Se resistió</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm">Veces que se despertó en la noche *</label>
+            <select id="veces_desperto" required class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
+              <option value="">—</option>
+              <option>Ninguna</option>
+              <option>1-2 veces</option>
+              <option>3 o más</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm">Motivo del despertar (si aplica)</label>
+            <select id="motivo_despertar" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
+              <option value="">—</option>
+              <option>Ir al baño</option>
+              <option>Dolor o malestar</option>
+              <option>Confusión o ansiedad</option>
+              <option>Sin motivo aparente</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm">Fue al baño durante la noche *</label>
+            <select id="fue_bano" required class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
+              <option value="">—</option>
+              <option>No</option>
+              <option>Sí, sola</option>
+              <option>Sí, con ayuda</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm">¿Cómo amaneció? *</label>
+            <select id="como_amanecio" required class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
+              <option value="">—</option>
+              <option>Descansada</option>
+              <option>Cansada</option>
+              <option>Irritable</option>
+              <option>Confundida</option>
+            </select>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <details class="mt-4"><summary class="text-xs text-gray-500 cursor-pointer">Ver detalles técnicos / columnas detectadas</summary><pre id="debug" class="mt-2 bg-gray-900 text-green-300 p-3 rounded text-[11px] overflow-auto max-h-48"></pre></details>
-  </div>
+      <hr class="border-gray-100">
 
-  <!-- FORM VIEW -->
-  <div id="view-form" class="hidden mt-6 bg-white p-6 rounded-xl border shadow-sm">
-    <h2 class="font-bold">Nuevo reporte diario</h2>
-    <p class="text-xs text-gray-500 mb-4">Elige tu nombre — así se mantiene el registro de las 3 cuidadoras sin mezclarse</p>
-    <form id="reportForm" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div><label class="text-xs">Cuidadora *</label><select id="f_cuidadora" required class="w-full border rounded px-3 py-2 text-sm"><option value="">Elige</option><option>Aracely</option><option>Ibeth</option><option>Carmita</option></select></div>
-        <div><label class="text-xs">Fecha *</label><input type="date" id="f_fecha" required class="w-full border rounded px-3 py-2 text-sm"></div>
-        <div><label class="text-xs">Hora en que se acostó</label><input type="time" id="f_hora_acostarse" class="w-full border rounded px-3 py-2 text-sm"></div>
+      <!-- Día -->
+      <div>
+        <h2 class="font-semibold text-gray-800">Día</h2>
+        <div class="space-y-4 mt-3">
+          <div>
+            <label class="text-sm">Estado general</label>
+            <select id="estado_general" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
+              <option value="">—</option>
+              <option>Excelente</option>
+              <option>Bien</option>
+              <option>Regular</option>
+              <option>Mal</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div><label class="text-sm">Desayuno</label><input id="desayuno" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm" placeholder="Qué comió, cuánto"></div>
+            <div><label class="text-sm">Almuerzo</label><input id="almuerzo" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></div>
+            <div><label class="text-sm">Merienda</label><input id="merienda" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label class="text-sm">Hidratación</label><input id="hidratacion" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm" placeholder="Vasos de agua"></div>
+            <div><label class="text-sm">Medicación</label><input id="medicacion" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm" placeholder="Si tomó todo"></div>
+          </div>
+          <div><label class="text-sm">Presión arterial</label><input id="presion_arterial" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm" placeholder="Ej: 120/80"></div>
+          <div><label class="text-sm">Actividades del día</label><textarea id="actividades" rows="2" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></textarea></div>
+          <div><label class="text-sm">Estado de la casa</label><textarea id="estado_casa" rows="2" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></textarea></div>
+          <div><label class="text-sm">Observaciones</label><textarea id="observaciones" rows="3" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm" placeholder="Todo lo importante del turno"></textarea></div>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div><label class="text-xs">¿Cómo se durmió?</label><select id="f_como_durmio" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Fácilmente</option><option>Con dificultad</option><option>Se resistió</option></select></div>
-        <div><label class="text-xs">Veces que se despertó</label><select id="f_veces_desperto" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Ninguna</option><option>1-2 veces</option><option>3 o más</option></select></div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div><label class="text-xs">Motivo del despertar</label><select id="f_motivo_despertar" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Ir al baño</option><option>Dolor o malestar</option><option>Confusión o ansiedad</option><option>Sin motivo aparente</option></select></div>
-        <div><label class="text-xs">Fue al baño en la noche</label><select id="f_fue_bano" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>No</option><option>Sí, sola</option><option>Sí, con ayuda</option></select></div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div><label class="text-xs">¿Cómo amaneció?</label><select id="f_como_amanecio" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Descansada</option><option>Cansada</option><option>Irritable</option><option>Confundida</option></select></div>
-        <div><label class="text-xs">Estado general</label><select id="f_estado_general" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Bien</option><option>Regular</option><option>Mal</option><option>Excelente</option></select></div>
-        <div><label class="text-xs">Presión arterial (ej: 120/80)</label><input id="f_presion" class="w-full border rounded px-3 py-2 text-sm" placeholder="120/80"></div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div><label class="text-xs">Desayuno</label><input id="f_desayuno" class="w-full border rounded px-3 py-2 text-sm" placeholder="Qué comió"></div>
-        <div><label class="text-xs">Almuerzo</label><input id="f_almuerzo" class="w-full border rounded px-3 py-2 text-sm"></div>
-        <div><label class="text-xs">Merienda</label><input id="f_merienda" class="w-full border rounded px-3 py-2 text-sm"></div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div><label class="text-xs">Hidratación</label><input id="f_hidratacion" class="w-full border rounded px-3 py-2 text-sm" placeholder="Vasos de agua, etc"></div>
-        <div><label class="text-xs">Medicación</label><input id="f_medicacion" class="w-full border rounded px-3 py-2 text-sm" placeholder="Si tomó todo"></div>
-      </div>
-
-      <div><label class="text-xs">Actividades del día</label><textarea id="f_actividades" rows="2" class="w-full border rounded px-3 py-2 text-sm"></textarea></div>
-      <div><label class="text-xs">Estado de la casa</label><textarea id="f_estado_casa" rows="2" class="w-full border rounded px-3 py-2 text-sm"></textarea></div>
-      <div><label class="text-xs">Observaciones</label><textarea id="f_observaciones" rows="3" class="w-full border rounded px-3 py-2 text-sm"></textarea></div>
-
-      <button type="submit" id="btnGuardar" class="w-full py-3 bg-black text-white rounded-lg font-medium">Guardar reporte</button>
-      <p id="formStatus" class="text-xs text-center"></p>
+      <button type="submit" id="btn" class="w-full py-3 bg-black text-white rounded-xl font-medium hover:bg-gray-900">Enviar reporte</button>
+      <p id="status" class="text-sm text-center"></p>
     </form>
+
+    <div class="mt-6 text-center">
+      <a href="./dashboard.html" class="text-sm text-gray-600 underline">Ver historial y exportar a Google Sheets</a>
+      <span class="text-gray-300 mx-2">|</span>
+      <a href="data:text/html;base64,PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVzIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgo8dGl0bGU+Q29uc29saWRhZG8gMzAgZMOtYXMgLSBSb3NpdGE8L3RpdGxlPgo8c2NyaXB0IHNyYz0iaHR0cHM6Ly9jZG4udGFpbHdpbmRjc3MuY29tIj48L3NjcmlwdD4KPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9ucG0vQHN1cGFiYXNlL3N1cGFiYXNlLWpzQDIuNDUuMC9kaXN0L3VtZC9zdXBhYmFzZS5taW4uanMiPjwvc2NyaXB0Pgo8c2NyaXB0IHNyYz0iLi9jb25maWcuanMiPjwvc2NyaXB0Pgo8c3R5bGU+CiAgYm9keSB7IGZvbnQtZmFtaWx5OiAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICdTZWdvZSBVSScsIFJvYm90bywgc2Fucy1zZXJpZjsgfQo8L3N0eWxlPgo8L2hlYWQ+Cjxib2R5IGNsYXNzPSJiZy1ncmF5LTUwIG1pbi1oLXNjcmVlbiI+CiAgPGRpdiBjbGFzcz0ibWF4LXctN3hsIG14LWF1dG8gcHgtNCBweS02Ij4KICAgIDwhLS0gSGVhZGVyIC0tPgogICAgPGRpdiBjbGFzcz0iZmxleCBmbGV4LWNvbCBtZDpmbGV4LXJvdyBtZDppdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC00IG1iLTYiPgogICAgICA8ZGl2PgogICAgICAgIDxoMSBjbGFzcz0idGV4dC0yeGwgZm9udC1ib2xkIHRleHQtZ3JheS04MDAiPlJlcG9ydGUgQ29uc29saWRhZG8gLSBSb3NpdGE8L2gxPgogICAgICAgIDxwIGNsYXNzPSJ0ZXh0LWdyYXktNjAwIHRleHQtc20gbXQtMSI+w5psdGltb3MgMzAgZMOtYXMg4oCiIFRvZGFzIGxhcyBjdWlkYWRvcmFzIOKAoiBWaXN0YSBwYXJhIEdvb2dsZSBTaGVldHM8L3A+CiAgICAgICAgPHAgaWQ9InJhbmdvRmVjaGFzIiBjbGFzcz0idGV4dC14cyB0ZXh0LWdyYXktNTAwIG10LTEiPjwvcD4KICAgICAgPC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImZsZXggZ2FwLTIgZmxleC13cmFwIj4KICAgICAgICA8YSBocmVmPSIuL2Rhc2hib2FyZC5odG1sIiBjbGFzcz0icHgtNCBweS0yIGJnLXdoaXRlIGJvcmRlciByb3VuZGVkLWxnIHRleHQtc20gaG92ZXI6YmctZ3JheS0xMDAiPuKGkCBIaXN0b3JpYWwgY29tcGxldG88L2E+CiAgICAgICAgPGEgaHJlZj0iLi9pbmRleC5odG1sIiBjbGFzcz0icHgtNCBweS0yIGJnLXdoaXRlIGJvcmRlciByb3VuZGVkLWxnIHRleHQtc20gaG92ZXI6YmctZ3JheS0xMDAiPisgTnVldm8gcmVwb3J0ZTwvYT4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KCiAgICA8IS0tIFN1bW1hcnkgQ2FyZHMgLS0+CiAgICA8ZGl2IGlkPSJzdW1tYXJ5IiBjbGFzcz0iZ3JpZCBncmlkLWNvbHMtMSBtZDpncmlkLWNvbHMtNCBnYXAtNCBtYi02Ij4KICAgICAgPGRpdiBjbGFzcz0iYmctd2hpdGUgcC00IHJvdW5kZWQteGwgc2hhZG93LXNtIGJvcmRlciI+CiAgICAgICAgPGRpdiBjbGFzcz0idGV4dC14cyB0ZXh0LWdyYXktNTAwIHVwcGVyY2FzZSI+VG90YWwgcmVwb3J0ZXM8L2Rpdj4KICAgICAgICA8ZGl2IGlkPSJ0b3RhbFJlcG9ydGVzIiBjbGFzcz0idGV4dC0yeGwgZm9udC1ib2xkIG10LTEiPuKAlDwvZGl2PgogICAgICAgIDxkaXYgaWQ9InRvdGFsRGlhcyIgY2xhc3M9InRleHQteHMgdGV4dC1ncmF5LTUwMCBtdC0xIj48L2Rpdj4KICAgICAgPC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImJnLXdoaXRlIHAtNCByb3VuZGVkLXhsIHNoYWRvdy1zbSBib3JkZXIiPgogICAgICAgIDxkaXYgY2xhc3M9InRleHQteHMgdGV4dC1ncmF5LTUwMCB1cHBlcmNhc2UiPlBvciBjdWlkYWRvcmE8L2Rpdj4KICAgICAgICA8ZGl2IGlkPSJwb3JDdWlkYWRvcmEiIGNsYXNzPSJtdC0yIHNwYWNlLXktMSB0ZXh0LXNtIj48L2Rpdj4KICAgICAgPC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImJnLXdoaXRlIHAtNCByb3VuZGVkLXhsIHNoYWRvdy1zbSBib3JkZXIiPgogICAgICAgIDxkaXYgY2xhc3M9InRleHQteHMgdGV4dC1ncmF5LTUwMCB1cHBlcmNhc2UiPkVzdGFkbyBnZW5lcmFsPC9kaXY+CiAgICAgICAgPGRpdiBpZD0icG9yRXN0YWRvIiBjbGFzcz0ibXQtMiBzcGFjZS15LTEgdGV4dC1zbSI+PC9kaXY+CiAgICAgIDwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJiZy13aGl0ZSBwLTQgcm91bmRlZC14bCBzaGFkb3ctc20gYm9yZGVyIj4KICAgICAgICA8ZGl2IGNsYXNzPSJ0ZXh0LXhzIHRleHQtZ3JheS01MDAgdXBwZXJjYXNlIj5BY2Npb25lczwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImZsZXggZmxleC1jb2wgZ2FwLTIgbXQtMiI+CiAgICAgICAgICA8YnV0dG9uIGlkPSJidG5DU1YiIGNsYXNzPSJ3LWZ1bGwgcHgtMyBweS0yIGJnLWdyZWVuLTYwMCB0ZXh0LXdoaXRlIHJvdW5kZWQtbGcgdGV4dC1zbSBob3ZlcjpiZy1ncmVlbi03MDAiPuKshyBFeHBvcnRhciBDU1YgcGFyYSBHb29nbGUgU2hlZXRzPC9idXR0b24+CiAgICAgICAgICA8YnV0dG9uIGlkPSJidG5TaGVldHMiIGNsYXNzPSJ3LWZ1bGwgcHgtMyBweS0yIGJnLWJsdWUtNjAwIHRleHQtd2hpdGUgcm91bmRlZC1sZyB0ZXh0LXNtIGhvdmVyOmJnLWJsdWUtNzAwIj7wn5OKIENvcGlhciBwYXJhIHBlZ2FyIGVuIFNoZWV0czwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgoKICAgIDwhLS0gRmlsdGVycyAtLT4KICAgIDxkaXYgY2xhc3M9ImJnLXdoaXRlIHAtNCByb3VuZGVkLXhsIHNoYWRvdy1zbSBib3JkZXIgbWItNiBmbGV4IGZsZXgtY29sIG1kOmZsZXgtcm93IGdhcC0zIGl0ZW1zLXN0YXJ0IG1kOml0ZW1zLWVuZCI+CiAgICAgIDxkaXY+CiAgICAgICAgPGxhYmVsIGNsYXNzPSJ0ZXh0LXhzIHRleHQtZ3JheS02MDAiPkRlc2RlPC9sYWJlbD4KICAgICAgICA8aW5wdXQgdHlwZT0iZGF0ZSIgaWQ9ImRlc2RlIiBjbGFzcz0iYm9yZGVyIHJvdW5kZWQtbGcgcHgtMyBweS0yIHRleHQtc20gdy1mdWxsIj4KICAgICAgPC9kaXY+CiAgICAgIDxkaXY+CiAgICAgICAgPGxhYmVsIGNsYXNzPSJ0ZXh0LXhzIHRleHQtZ3JheS02MDAiPkhhc3RhPC9sYWJlbD4KICAgICAgICA8aW5wdXQgdHlwZT0iZGF0ZSIgaWQ9Imhhc3RhIiBjbGFzcz0iYm9yZGVyIHJvdW5kZWQtbGcgcHgtMyBweS0yIHRleHQtc20gdy1mdWxsIj4KICAgICAgPC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImZsZXgtMSI+CiAgICAgICAgPGxhYmVsIGNsYXNzPSJ0ZXh0LXhzIHRleHQtZ3JheS02MDAiPlRhYmxhIGVuIFN1cGFiYXNlIChzaSBjYW1iaWFzdGUgZWwgbm9tYnJlKTwvbGFiZWw+CiAgICAgICAgPHNlbGVjdCBpZD0idGFibGEiIGNsYXNzPSJib3JkZXIgcm91bmRlZC1sZyBweC0zIHB5LTIgdGV4dC1zbSB3LWZ1bGwiPgogICAgICAgICAgPG9wdGlvbiB2YWx1ZT0icmVwb3J0ZXMiIHNlbGVjdGVkPnJlcG9ydGVzPC9vcHRpb24+CiAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJyZXBvcnRlc19yb3NpdGEiPnJlcG9ydGVzX3Jvc2l0YTwvb3B0aW9uPgogICAgICAgICAgPG9wdGlvbiB2YWx1ZT0icmVwb3J0ZXNfZGlhcmlvcyI+cmVwb3J0ZXNfZGlhcmlvczwvb3B0aW9uPgogICAgICAgICAgPG9wdGlvbiB2YWx1ZT0icmVwb3J0ZV9yb3NpdGEiPnJlcG9ydGVfcm9zaXRhPC9vcHRpb24+CiAgICAgICAgPC9zZWxlY3Q+CiAgICAgIDwvZGl2PgogICAgICA8YnV0dG9uIGlkPSJidG5GaWx0cmFyIiBjbGFzcz0icHgtNSBweS0yIGJnLWdyYXktOTAwIHRleHQtd2hpdGUgcm91bmRlZC1sZyB0ZXh0LXNtIGhvdmVyOmJnLWJsYWNrIj5BY3R1YWxpemFyPC9idXR0b24+CiAgICA8L2Rpdj4KCiAgICA8IS0tIFN0YXR1cyAtLT4KICAgIDxkaXYgaWQ9InN0YXR1cyIgY2xhc3M9InRleHQtc20gdGV4dC1ncmF5LTYwMCBtYi00Ij5DYXJnYW5kbyByZXBvcnRlcyBkZSBsb3Mgw7psdGltb3MgMzAgZMOtYXMuLi48L2Rpdj4KCiAgICA8IS0tIFRhYmxlIC0tPgogICAgPGRpdiBjbGFzcz0iYmctd2hpdGUgcm91bmRlZC14bCBzaGFkb3ctc20gYm9yZGVyIG92ZXJmbG93LWhpZGRlbiI+CiAgICAgIDxkaXYgY2xhc3M9Im92ZXJmbG93LXgtYXV0byI+CiAgICAgICAgPHRhYmxlIGNsYXNzPSJ3LWZ1bGwgdGV4dC1zbSIgaWQ9InRhYmxhUmVwb3J0ZXMiPgogICAgICAgICAgPHRoZWFkIGNsYXNzPSJiZy1ncmF5LTEwMCB0ZXh0LXhzIHVwcGVyY2FzZSB0ZXh0LWdyYXktNjAwIj4KICAgICAgICAgICAgPHRyPgogICAgICAgICAgICAgIDx0aCBjbGFzcz0icHgtMyBweS0yIHRleHQtbGVmdCI+RmVjaGE8L3RoPgogICAgICAgICAgICAgIDx0aCBjbGFzcz0icHgtMyBweS0yIHRleHQtbGVmdCI+Q3VpZGFkb3JhPC90aD4KICAgICAgICAgICAgICA8dGggY2xhc3M9InB4LTMgcHktMiB0ZXh0LWxlZnQiPkVzdGFkbyBnZW5lcmFsPC90aD4KICAgICAgICAgICAgICA8dGggY2xhc3M9InB4LTMgcHktMiB0ZXh0LWxlZnQiPkRlc2F5dW5vPC90aD4KICAgICAgICAgICAgICA8dGggY2xhc3M9InB4LTMgcHktMiB0ZXh0LWxlZnQiPkFsbXVlcnpvPC90aD4KICAgICAgICAgICAgICA8dGggY2xhc3M9InB4LTMgcHktMiB0ZXh0LWxlZnQiPk1lcmllbmRhPC90aD4KICAgICAgICAgICAgICA8dGggY2xhc3M9InB4LTMgcHktMiB0ZXh0LWxlZnQiPkhpZHJhdGFjacOzbjwvdGg+CiAgICAgICAgICAgICAgPHRoIGNsYXNzPSJweC0zIHB5LTIgdGV4dC1sZWZ0Ij5NZWRpY2FjacOzbjwvdGg+CiAgICAgICAgICAgICAgPHRoIGNsYXNzPSJweC0zIHB5LTIgdGV4dC1sZWZ0Ij5QcmVzacOzbiBhcnRlcmlhbDwvdGg+CiAgICAgICAgICAgICAgPHRoIGNsYXNzPSJweC0zIHB5LTIgdGV4dC1sZWZ0Ij5BY3RpdmlkYWRlczwvdGg+CiAgICAgICAgICAgICAgPHRoIGNsYXNzPSJweC0zIHB5LTIgdGV4dC1sZWZ0Ij5Fc3RhZG8gY2FzYTwvdGg+CiAgICAgICAgICAgICAgPHRoIGNsYXNzPSJweC0zIHB5LTIgdGV4dC1sZWZ0Ij5PYnNlcnZhY2lvbmVzPC90aD4KICAgICAgICAgICAgPC90cj4KICAgICAgICAgIDwvdGhlYWQ+CiAgICAgICAgICA8dGJvZHkgaWQ9InRib2R5IiBjbGFzcz0iZGl2aWRlLXkiPjwvdGJvZHk+CiAgICAgICAgPC90YWJsZT4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KCiAgICA8ZGl2IGNsYXNzPSJtdC02IHRleHQteHMgdGV4dC1ncmF5LTUwMCI+CiAgICAgIDxwPjxiPkPDs21vIGxsZXZhciBhIEdvb2dsZSBTaGVldHM6PC9iPiAxKSBIYXogY2xpYyBlbiAiRXhwb3J0YXIgQ1NWIiDihpIgc2UgZGVzY2FyZ2EgdW4gYXJjaGl2by4gMikgQWJyZSBzaGVldHMuZ29vZ2xlLmNvbSDihpIgQXJjaGl2byDihpIgSW1wb3J0YXIg4oaSIFN1YmlyIOKGkiBzZWxlY2Npb25hIGVsIENTVi4gMykgTWFyY2EgIlJlZW1wbGF6YXIgaG9qYSIgeSBsaXN0by4gVG9kb3MgbG9zIHJlcG9ydGVzIGRlIEFyYWNlbHksIEliZXRoIHkgQ2FybWl0YSBxdWVkYXLDoW4gZW4gdW5hIHNvbGEgaG9qYSBkZSBsb3Mgw7psdGltb3MgMzAgZMOtYXMuPC9wPgogICAgICA8cCBjbGFzcz0ibXQtMiI+RXN0ZSBhcmNoaXZvIHVzYSBlbCBtaXNtbyA8Y29kZT5jb25maWcuanM8L2NvZGU+IHF1ZSA8Y29kZT5kYXNoYm9hcmQuaHRtbDwvY29kZT4sIGFzw60gcXVlIG5vIG5lY2VzaXRhcyBjb25maWd1cmFyIG5hZGEgZXh0cmEuPC9wPgogICAgPC9kaXY+CiAgPC9kaXY+Cgo8c2NyaXB0Pgpjb25zdCB7IGNyZWF0ZUNsaWVudCB9ID0gc3VwYWJhc2U7CmxldCBzdXBhYmFzZUNsaWVudDsKbGV0IGRhdG9zQWN0dWFsZXMgPSBbXTsKCmZ1bmN0aW9uIGluaXRDbGllbnQoKSB7CiAgaWYgKHR5cGVvZiBTVVBBQkFTRV9VUkwgPT09ICd1bmRlZmluZWQnIHx8IHR5cGVvZiBTVVBBQkFTRV9BTk9OX0tFWSA9PT0gJ3VuZGVmaW5lZCcpIHsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzdGF0dXMnKS5pbm5lckhUTUwgPSAnPHNwYW4gY2xhc3M9InRleHQtcmVkLTYwMCI+Tm8gc2UgZW5jb250csOzIGNvbmZpZy5qcy4gQXNlZ8O6cmF0ZSBkZSBxdWUgZXN0ZSBhcmNoaXZvIGVzdMOpIGVuIGxhIG1pc21hIGNhcnBldGEgcXVlIGNvbmZpZy5qczwvc3Bhbj4nOwogICAgcmV0dXJuIGZhbHNlOwogIH0KICBzdXBhYmFzZUNsaWVudCA9IGNyZWF0ZUNsaWVudChTVVBBQkFTRV9VUkwsIFNVUEFCQVNFX0FOT05fS0VZKTsKICByZXR1cm4gdHJ1ZTsKfQoKZnVuY3Rpb24gc2V0RGVmYXVsdERhdGVzKCkgewogIGNvbnN0IGhveSA9IG5ldyBEYXRlKCk7CiAgY29uc3QgaGFjZTMwID0gbmV3IERhdGUoKTsKICBoYWNlMzAuc2V0RGF0ZShob3kuZ2V0RGF0ZSgpIC0gMzApOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdkZXNkZScpLnZhbHVlID0gaGFjZTMwLnRvSVNPU3RyaW5nKCkuc3BsaXQoJ1QnKVswXTsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnaGFzdGEnKS52YWx1ZSA9IGhveS50b0lTT1N0cmluZygpLnNwbGl0KCdUJylbMF07CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3JhbmdvRmVjaGFzJykudGV4dENvbnRlbnQgPSBgUmFuZ286ICR7aGFjZTMwLnRvTG9jYWxlRGF0ZVN0cmluZygpfSDigJQgJHtob3kudG9Mb2NhbGVEYXRlU3RyaW5nKCl9YDsKfQoKYXN5bmMgZnVuY3Rpb24gY2FyZ2FyRGF0b3MoKSB7CiAgY29uc3QgdGFibGEgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndGFibGEnKS52YWx1ZTsKICBjb25zdCBkZXNkZSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdkZXNkZScpLnZhbHVlOwogIGNvbnN0IGhhc3RhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2hhc3RhJykudmFsdWU7CiAgCiAgY29uc3QgZGVzZGVJU08gPSBuZXcgRGF0ZShkZXNkZSArICdUMDA6MDA6MDAnKS50b0lTT1N0cmluZygpOwogIGNvbnN0IGhhc3RhSVNPID0gbmV3IERhdGUoaGFzdGEgKyAnVDIzOjU5OjU5JykudG9JU09TdHJpbmcoKTsKCiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3N0YXR1cycpLnRleHRDb250ZW50ID0gYENvbnN1bHRhbmRvIHRhYmxhICIke3RhYmxhfSIgZGVzZGUgJHtkZXNkZX0gaGFzdGEgJHtoYXN0YX0uLi5gOwoKICAvLyBJbnRlbnRhIGNvbiBjb2x1bW5hIGZlY2hhLCBzaSBubyBleGlzdGUgdXNhIGNyZWF0ZWRfYXQKICBsZXQgZGF0YSA9IG51bGwsIGVycm9yID0gbnVsbDsKICBsZXQgaW50ZW50byA9IGF3YWl0IHN1cGFiYXNlQ2xpZW50LmZyb20odGFibGEpLnNlbGVjdCgnKicpLmd0ZSgnZmVjaGEnLCBkZXNkZUlTTykubHRlKCdmZWNoYScsIGhhc3RhSVNPKS5vcmRlcignZmVjaGEnLCB7IGFzY2VuZGluZzogZmFsc2UgfSkubGltaXQoMTAwMCk7CiAgCiAgaWYgKGludGVudG8uZXJyb3IgJiYgaW50ZW50by5lcnJvci5tZXNzYWdlLmluY2x1ZGVzKCdjb2x1bW4nKSkgewogICAgLy8gZmFsbGJhY2sgYSBjcmVhdGVkX2F0CiAgICBpbnRlbnRvID0gYXdhaXQgc3VwYWJhc2VDbGllbnQuZnJvbSh0YWJsYSkuc2VsZWN0KCcqJykuZ3RlKCdjcmVhdGVkX2F0JywgZGVzZGVJU08pLmx0ZSgnY3JlYXRlZF9hdCcsIGhhc3RhSVNPKS5vcmRlcignY3JlYXRlZF9hdCcsIHsgYXNjZW5kaW5nOiBmYWxzZSB9KS5saW1pdCgxMDAwKTsKICB9CiAgCiAgZGF0YSA9IGludGVudG8uZGF0YTsgZXJyb3IgPSBpbnRlbnRvLmVycm9yOwoKICBpZiAoZXJyb3IpIHsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzdGF0dXMnKS5pbm5lckhUTUwgPSBgPHNwYW4gY2xhc3M9InRleHQtcmVkLTYwMCI+RXJyb3I6ICR7ZXJyb3IubWVzc2FnZX0uIFZlcmlmaWNhIHF1ZSBsYSB0YWJsYSBzZSBsbGFtZSAiJHt0YWJsYX0iIHkgcXVlIHRlbmdhIGNvbHVtbmEgZmVjaGEvY3JlYXRlZF9hdC48L3NwYW4+YDsKICAgIGNvbnNvbGUuZXJyb3IoZXJyb3IpOwogICAgcmV0dXJuOwogIH0KCiAgZGF0b3NBY3R1YWxlcyA9IGRhdGEgfHwgW107CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3N0YXR1cycpLnRleHRDb250ZW50ID0gYCR7ZGF0b3NBY3R1YWxlcy5sZW5ndGh9IHJlcG9ydGVzIGVuY29udHJhZG9zICh0b2RhcyBsYXMgY3VpZGFkb3JhcylgOwogIHJlbmRlclRhYmxhKCk7CiAgcmVuZGVyUmVzdW1lbigpOwp9CgpmdW5jdGlvbiBnZXRDYW1wbyhvYmosIC4uLmtleXMpIHsKICBmb3IgKGNvbnN0IGsgb2Yga2V5cykgewogICAgaWYgKG9ialtrXSAhPT0gdW5kZWZpbmVkICYmIG9ialtrXSAhPT0gbnVsbCAmJiBvYmpba10gIT09ICcnKSByZXR1cm4gb2JqW2tdOwogIH0KICByZXR1cm4gJyc7Cn0KCmZ1bmN0aW9uIHJlbmRlclJlc3VtZW4oKSB7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3RvdGFsUmVwb3J0ZXMnKS50ZXh0Q29udGVudCA9IGRhdG9zQWN0dWFsZXMubGVuZ3RoOwogIGNvbnN0IGRpYXNVbmljb3MgPSBuZXcgU2V0KGRhdG9zQWN0dWFsZXMubWFwKHIgPT4gKGdldENhbXBvKHIsICdmZWNoYScsJ2NyZWF0ZWRfYXQnKSB8fCAnJykuc3BsaXQoJ1QnKVswXSkpLnNpemU7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3RvdGFsRGlhcycpLnRleHRDb250ZW50ID0gYCR7ZGlhc1VuaWNvc30gZMOtYXMgY29uIHJlcG9ydGVzYDsKCiAgLy8gUG9yIGN1aWRhZG9yYQogIGNvbnN0IGNvbnRlb0N1aWRhZG9yYSA9IHt9OwogIGRhdG9zQWN0dWFsZXMuZm9yRWFjaChyID0+IHsKICAgIGNvbnN0IGMgPSBnZXRDYW1wbyhyLCAnY3VpZGFkb3JhJywnbm9tYnJlX2N1aWRhZG9yYScsJ2N1aWRhZG9yJywnYXV0aG9yJykgfHwgJ1NpbiBub21icmUnOwogICAgY29udGVvQ3VpZGFkb3JhW2NdID0gKGNvbnRlb0N1aWRhZG9yYVtjXSB8fCAwKSArIDE7CiAgfSk7CiAgY29uc3QgaHRtbEN1aWRhZG9yYSA9IE9iamVjdC5lbnRyaWVzKGNvbnRlb0N1aWRhZG9yYSkubWFwKChbbm9tYnJlLCBjb3VudF0pID0+IHsKICAgIGNvbnN0IGNvbG9yID0gbm9tYnJlLnRvTG93ZXJDYXNlKCkuaW5jbHVkZXMoJ2FyYWNlbHknKSA/ICdiZy1wdXJwbGUtMTAwIHRleHQtcHVycGxlLTgwMCcgOiBub21icmUudG9Mb3dlckNhc2UoKS5pbmNsdWRlcygnaWJldGgnKSA/ICdiZy1ibHVlLTEwMCB0ZXh0LWJsdWUtODAwJyA6IG5vbWJyZS50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKCdjYXJtaXRhJykgPyAnYmctb3JhbmdlLTEwMCB0ZXh0LW9yYW5nZS04MDAnIDogJ2JnLWdyYXktMTAwJzsKICAgIHJldHVybiBgPGRpdiBjbGFzcz0iZmxleCBqdXN0aWZ5LWJldHdlZW4gaXRlbXMtY2VudGVyIj48c3BhbiBjbGFzcz0icHgtMiBweS0wLjUgcm91bmRlZC1mdWxsIHRleHQteHMgJHtjb2xvcn0iPiR7bm9tYnJlfTwvc3Bhbj48c3BhbiBjbGFzcz0iZm9udC1ib2xkIj4ke2NvdW50fTwvc3Bhbj48L2Rpdj5gOwogIH0pLmpvaW4oJycpIHx8ICc8c3BhbiBjbGFzcz0idGV4dC1ncmF5LTQwMCI+U2luIGRhdG9zPC9zcGFuPic7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3BvckN1aWRhZG9yYScpLmlubmVySFRNTCA9IGh0bWxDdWlkYWRvcmE7CgogIC8vIFBvciBlc3RhZG8gZ2VuZXJhbAogIGNvbnN0IGNvbnRlb0VzdGFkbyA9IHt9OwogIGRhdG9zQWN0dWFsZXMuZm9yRWFjaChyID0+IHsKICAgIGNvbnN0IGUgPSBnZXRDYW1wbyhyLCAnZXN0YWRvX2dlbmVyYWwnLCdlc3RhZG8nLCdlc3RhZG9HZW5lcmFsJykgfHwgJ1NpbiByZWdpc3Rybyc7CiAgICBjb250ZW9Fc3RhZG9bZV0gPSAoY29udGVvRXN0YWRvW2VdIHx8IDApICsgMTsKICB9KTsKICBjb25zdCBodG1sRXN0YWRvID0gT2JqZWN0LmVudHJpZXMoY29udGVvRXN0YWRvKS5tYXAoKFtlc3QsIGNvdW50XSkgPT4gYDxkaXYgY2xhc3M9ImZsZXgganVzdGlmeS1iZXR3ZWVuIj48c3Bhbj4ke2VzdH08L3NwYW4+PHNwYW4gY2xhc3M9ImZvbnQtYm9sZCI+JHtjb3VudH08L3NwYW4+PC9kaXY+YCkuam9pbignJykgfHwgJzxzcGFuIGNsYXNzPSJ0ZXh0LWdyYXktNDAwIj5TaW4gZGF0b3M8L3NwYW4+JzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncG9yRXN0YWRvJykuaW5uZXJIVE1MID0gaHRtbEVzdGFkbzsKfQoKZnVuY3Rpb24gcmVuZGVyVGFibGEoKSB7CiAgY29uc3QgdGJvZHkgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndGJvZHknKTsKICB0Ym9keS5pbm5lckhUTUwgPSAnJzsKCiAgaWYgKGRhdG9zQWN0dWFsZXMubGVuZ3RoID09PSAwKSB7CiAgICB0Ym9keS5pbm5lckhUTUwgPSAnPHRyPjx0ZCBjb2xzcGFuPSIxMiIgY2xhc3M9InB4LTQgcHktOCB0ZXh0LWNlbnRlciB0ZXh0LWdyYXktNTAwIj5ObyBoYXkgcmVwb3J0ZXMgZW4gZXN0ZSByYW5nby4gQ2FtYmlhIGxhcyBmZWNoYXMgbyB2ZXJpZmljYSBxdWUgbGFzIGN1aWRhZG9yYXMgaGF5YW4gZW52aWFkbyByZXBvcnRlcy48L3RkPjwvdHI+JzsKICAgIHJldHVybjsKICB9CgogIGRhdG9zQWN0dWFsZXMuZm9yRWFjaChyID0+IHsKICAgIGNvbnN0IGZlY2hhUmF3ID0gZ2V0Q2FtcG8ociwgJ2ZlY2hhJywnY3JlYXRlZF9hdCcsJ2ZlY2hhX3JlcG9ydGUnKTsKICAgIGNvbnN0IGZlY2hhID0gZmVjaGFSYXcgPyBuZXcgRGF0ZShmZWNoYVJhdykudG9Mb2NhbGVTdHJpbmcoJ2VzLUVDJywgeyBkYXRlU3R5bGU6ICdzaG9ydCcsIHRpbWVTdHlsZTogJ3Nob3J0JyB9KSA6ICcnOwogICAgY29uc3QgY3VpZGFkb3JhID0gZ2V0Q2FtcG8ociwgJ2N1aWRhZG9yYScsJ25vbWJyZV9jdWlkYWRvcmEnKTsKICAgIGNvbnN0IGVzdGFkbyA9IGdldENhbXBvKHIsICdlc3RhZG9fZ2VuZXJhbCcsJ2VzdGFkbycpOwogICAgY29uc3QgZGVzYXl1bm8gPSBnZXRDYW1wbyhyLCAnZGVzYXl1bm8nKTsKICAgIGNvbnN0IGFsbXVlcnpvID0gZ2V0Q2FtcG8ociwgJ2FsbXVlcnpvJyk7CiAgICBjb25zdCBtZXJpZW5kYSA9IGdldENhbXBvKHIsICdtZXJpZW5kYScpOwogICAgY29uc3QgaGlkcmF0YWNpb24gPSBnZXRDYW1wbyhyLCAnaGlkcmF0YWNpb24nLCdoaWRyYXRhY2nDs24nKTsKICAgIGNvbnN0IG1lZGljYWNpb24gPSBnZXRDYW1wbyhyLCAnbWVkaWNhY2lvbicsJ21lZGljYWNpw7NuJyk7CiAgICBjb25zdCBwcmVzaW9uID0gZ2V0Q2FtcG8ociwgJ3ByZXNpb25fYXJ0ZXJpYWwnLCdwcmVzaW9uJywncHJlc2nDs25fYXJ0ZXJpYWwnKTsKICAgIGNvbnN0IGFjdGl2aWRhZGVzID0gZ2V0Q2FtcG8ociwgJ2FjdGl2aWRhZGVzJywnYWN0aXZpZGFkZXNfZGVsX2RpYScpOwogICAgY29uc3QgZXN0YWRvQ2FzYSA9IGdldENhbXBvKHIsICdlc3RhZG9fY2FzYScsJ2VzdGFkb0Nhc2EnLCdjYXNhJyk7CiAgICBjb25zdCBvYnNlcnZhY2lvbmVzID0gZ2V0Q2FtcG8ociwgJ29ic2VydmFjaW9uZXMnLCdvYnNlcnZhY2lvbicsJ25vdGFzJyk7CgogICAgY29uc3QgYmFkZ2VDb2xvciA9IGN1aWRhZG9yYS50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKCdhcmFjZWx5JykgPyAnYmctcHVycGxlLTEwMCB0ZXh0LXB1cnBsZS04MDAnIDogY3VpZGFkb3JhLnRvTG93ZXJDYXNlKCkuaW5jbHVkZXMoJ2liZXRoJykgPyAnYmctYmx1ZS0xMDAgdGV4dC1ibHVlLTgwMCcgOiBjdWlkYWRvcmEudG9Mb3dlckNhc2UoKS5pbmNsdWRlcygnY2FybWl0YScpID8gJ2JnLW9yYW5nZS0xMDAgdGV4dC1vcmFuZ2UtODAwJyA6ICdiZy1ncmF5LTEwMCB0ZXh0LWdyYXktODAwJzsKCiAgICBjb25zdCB0ciA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ3RyJyk7CiAgICB0ci5jbGFzc05hbWUgPSAnaG92ZXI6YmctZ3JheS01MCc7CiAgICB0ci5pbm5lckhUTUwgPSBgCiAgICAgIDx0ZCBjbGFzcz0icHgtMyBweS0yIHdoaXRlc3BhY2Utbm93cmFwIHRleHQteHMiPiR7ZmVjaGF9PC90ZD4KICAgICAgPHRkIGNsYXNzPSJweC0zIHB5LTIiPjxzcGFuIGNsYXNzPSJweC0yIHB5LTAuNSByb3VuZGVkLWZ1bGwgdGV4dC14cyAke2JhZGdlQ29sb3J9Ij4ke2N1aWRhZG9yYSB8fCAn4oCUJ308L3NwYW4+PC90ZD4KICAgICAgPHRkIGNsYXNzPSJweC0zIHB5LTIiPiR7ZXN0YWRvIHx8ICfigJQnfTwvdGQ+CiAgICAgIDx0ZCBjbGFzcz0icHgtMyBweS0yIG1heC13LVsxNTBweF0gdHJ1bmNhdGUiIHRpdGxlPSIke2Rlc2F5dW5vfSI+JHtkZXNheXVubyB8fCAn4oCUJ308L3RkPgogICAgICA8dGQgY2xhc3M9InB4LTMgcHktMiBtYXgtdy1bMTUwcHhdIHRydW5jYXRlIiB0aXRsZT0iJHthbG11ZXJ6b30iPiR7YWxtdWVyem8gfHwgJ+KAlCd9PC90ZD4KICAgICAgPHRkIGNsYXNzPSJweC0zIHB5LTIgbWF4LXctWzE1MHB4XSB0cnVuY2F0ZSIgdGl0bGU9IiR7bWVyaWVuZGF9Ij4ke21lcmllbmRhIHx8ICfigJQnfTwvdGQ+CiAgICAgIDx0ZCBjbGFzcz0icHgtMyBweS0yIj4ke2hpZHJhdGFjaW9uIHx8ICfigJQnfTwvdGQ+CiAgICAgIDx0ZCBjbGFzcz0icHgtMyBweS0yIG1heC13LVsxNTBweF0gdHJ1bmNhdGUiIHRpdGxlPSIke21lZGljYWNpb259Ij4ke21lZGljYWNpb24gfHwgJ+KAlCd9PC90ZD4KICAgICAgPHRkIGNsYXNzPSJweC0zIHB5LTIgd2hpdGVzcGFjZS1ub3dyYXAiPiR7cHJlc2lvbiB8fCAn4oCUJ308L3RkPgogICAgICA8dGQgY2xhc3M9InB4LTMgcHktMiBtYXgtdy1bMTUwcHhdIHRydW5jYXRlIiB0aXRsZT0iJHthY3RpdmlkYWRlc30iPiR7YWN0aXZpZGFkZXMgfHwgJ+KAlCd9PC90ZD4KICAgICAgPHRkIGNsYXNzPSJweC0zIHB5LTIgbWF4LXctWzE1MHB4XSB0cnVuY2F0ZSIgdGl0bGU9IiR7ZXN0YWRvQ2FzYX0iPiR7ZXN0YWRvQ2FzYSB8fCAn4oCUJ308L3RkPgogICAgICA8dGQgY2xhc3M9InB4LTMgcHktMiBtYXgtdy1bMjAwcHhdIHRydW5jYXRlIiB0aXRsZT0iJHtvYnNlcnZhY2lvbmVzfSI+JHtvYnNlcnZhY2lvbmVzIHx8ICfigJQnfTwvdGQ+CiAgICBgOwogICAgdGJvZHkuYXBwZW5kQ2hpbGQodHIpOwogIH0pOwp9CgpmdW5jdGlvbiBleHBvcnRhckNTVigpIHsKICBpZiAoZGF0b3NBY3R1YWxlcy5sZW5ndGggPT09IDApIHsgYWxlcnQoJ05vIGhheSBkYXRvcyBwYXJhIGV4cG9ydGFyJyk7IHJldHVybjsgfQogIGNvbnN0IGhlYWRlcnMgPSBbJ2ZlY2hhJywnY3VpZGFkb3JhJywnZXN0YWRvX2dlbmVyYWwnLCdkZXNheXVubycsJ2FsbXVlcnpvJywnbWVyaWVuZGEnLCdoaWRyYXRhY2lvbicsJ21lZGljYWNpb24nLCdwcmVzaW9uX2FydGVyaWFsJywnYWN0aXZpZGFkZXMnLCdlc3RhZG9fY2FzYScsJ29ic2VydmFjaW9uZXMnXTsKICBjb25zdCByb3dzID0gW2hlYWRlcnMuam9pbignLCcpXTsKICAKICBkYXRvc0FjdHVhbGVzLmZvckVhY2gociA9PiB7CiAgICBjb25zdCByb3cgPSBoZWFkZXJzLm1hcChoID0+IHsKICAgICAgY29uc3QgdmFsID0gZ2V0Q2FtcG8ociwgaCwgaCA9PT0gJ2hpZHJhdGFjaW9uJyA/ICdoaWRyYXRhY2nDs24nIDogaCwgaCA9PT0gJ21lZGljYWNpb24nID8gJ21lZGljYWNpw7NuJyA6IGgsIGggPT09ICdwcmVzaW9uX2FydGVyaWFsJyA/ICdwcmVzacOzbl9hcnRlcmlhbCcgOiBoLCBoID09PSAnZXN0YWRvX2Nhc2EnID8gJ2VzdGFkb0Nhc2EnIDogaCk7CiAgICAgIC8vIEVzY2FwZSBDU1YKICAgICAgY29uc3Qgc3RyID0gU3RyaW5nKHZhbCB8fCAnJykucmVwbGFjZSgvIi9nLCAnIiInKTsKICAgICAgcmV0dXJuIGAiJHtzdHJ9ImA7CiAgICB9KS5qb2luKCcsJyk7CiAgICByb3dzLnB1c2gocm93KTsKICB9KTsKCiAgY29uc3QgY3N2Q29udGVudCA9IHJvd3Muam9pbignXG4nKTsKICBjb25zdCBibG9iID0gbmV3IEJsb2IoW2NzdkNvbnRlbnRdLCB7IHR5cGU6ICd0ZXh0L2NzdjtjaGFyc2V0PXV0Zi04OycgfSk7CiAgY29uc3QgdXJsID0gVVJMLmNyZWF0ZU9iamVjdFVSTChibG9iKTsKICBjb25zdCBhID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgnYScpOwogIGEuaHJlZiA9IHVybDsKICBjb25zdCBkZXNkZSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdkZXNkZScpLnZhbHVlOwogIGNvbnN0IGhhc3RhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2hhc3RhJykudmFsdWU7CiAgYS5kb3dubG9hZCA9IGByb3NpdGEtY29uc29saWRhZG8tJHtkZXNkZX1fYV8ke2hhc3RhfS5jc3ZgOwogIGEuY2xpY2soKTsKICBVUkwucmV2b2tlT2JqZWN0VVJMKHVybCk7Cn0KCmZ1bmN0aW9uIGNvcGlhclBhcmFTaGVldHMoKSB7CiAgaWYgKGRhdG9zQWN0dWFsZXMubGVuZ3RoID09PSAwKSB7IGFsZXJ0KCdObyBoYXkgZGF0b3MgcGFyYSBjb3BpYXInKTsgcmV0dXJuOyB9CiAgY29uc3QgaGVhZGVycyA9IFsnRmVjaGEnLCdDdWlkYWRvcmEnLCdFc3RhZG8gZ2VuZXJhbCcsJ0Rlc2F5dW5vJywnQWxtdWVyem8nLCdNZXJpZW5kYScsJ0hpZHJhdGFjacOzbicsJ01lZGljYWNpw7NuJywnUHJlc2nDs24gYXJ0ZXJpYWwnLCdBY3RpdmlkYWRlcycsJ0VzdGFkbyBjYXNhJywnT2JzZXJ2YWNpb25lcyddOwogIGNvbnN0IGxpbmVzID0gW2hlYWRlcnMuam9pbignXHQnKV07CiAgZGF0b3NBY3R1YWxlcy5mb3JFYWNoKHIgPT4gewogICAgY29uc3QgdmFscyA9IFsKICAgICAgZ2V0Q2FtcG8ociwgJ2ZlY2hhJywnY3JlYXRlZF9hdCcpLAogICAgICBnZXRDYW1wbyhyLCAnY3VpZGFkb3JhJyksCiAgICAgIGdldENhbXBvKHIsICdlc3RhZG9fZ2VuZXJhbCcsJ2VzdGFkbycpLAogICAgICBnZXRDYW1wbyhyLCAnZGVzYXl1bm8nKSwKICAgICAgZ2V0Q2FtcG8ociwgJ2FsbXVlcnpvJyksCiAgICAgIGdldENhbXBvKHIsICdtZXJpZW5kYScpLAogICAgICBnZXRDYW1wbyhyLCAnaGlkcmF0YWNpb24nLCdoaWRyYXRhY2nDs24nKSwKICAgICAgZ2V0Q2FtcG8ociwgJ21lZGljYWNpb24nLCdtZWRpY2FjacOzbicpLAogICAgICBnZXRDYW1wbyhyLCAncHJlc2lvbl9hcnRlcmlhbCcsJ3ByZXNpw7NuX2FydGVyaWFsJyksCiAgICAgIGdldENhbXBvKHIsICdhY3RpdmlkYWRlcycpLAogICAgICBnZXRDYW1wbyhyLCAnZXN0YWRvX2Nhc2EnKSwKICAgICAgZ2V0Q2FtcG8ociwgJ29ic2VydmFjaW9uZXMnKQogICAgXS5tYXAodiA9PiBTdHJpbmcodiB8fCAnJykucmVwbGFjZSgvXHR8XG4vZywgJyAnKSk7CiAgICBsaW5lcy5wdXNoKHZhbHMuam9pbignXHQnKSk7CiAgfSk7CiAgbmF2aWdhdG9yLmNsaXBib2FyZC53cml0ZVRleHQobGluZXMuam9pbignXG4nKSkudGhlbigoKSA9PiB7CiAgICBhbGVydCgnQ29waWFkbyBhbCBwb3J0YXBhcGVsZXMuIEFob3JhIHZlIGEgR29vZ2xlIFNoZWV0cyB5IHBlZ2EgKEN0cmwrVikgZW4gQTEuIFF1ZWRhcsOhIGNvbiB0b2RhcyBsYXMgY3VpZGFkb3JhcyBzZXBhcmFkYXMgcG9yIGNvbHVtbmEuJyk7CiAgfSk7Cn0KCmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdidG5DU1YnKS5hZGRFdmVudExpc3RlbmVyKCdjbGljaycsIGV4cG9ydGFyQ1NWKTsKZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2J0blNoZWV0cycpLmFkZEV2ZW50TGlzdGVuZXIoJ2NsaWNrJywgY29waWFyUGFyYVNoZWV0cyk7CmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdidG5GaWx0cmFyJykuYWRkRXZlbnRMaXN0ZW5lcignY2xpY2snLCBjYXJnYXJEYXRvcyk7Cgp3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsICgpID0+IHsKICBpZiAoIWluaXRDbGllbnQoKSkgcmV0dXJuOwogIHNldERlZmF1bHREYXRlcygpOwogIGNhcmdhckRhdG9zKCk7Cn0pOwo8L3NjcmlwdD4KPC9ib2R5Pgo8L2h0bWw+Cg==" class="text-sm text-gray-600 underline">Ver consolidado 30 días (3 cuidadoras)</a>
+    </div>
   </div>
 </div>
 
 <script>
-// ====== CONFIGURACIÓN - EDITA ESTO SOLO SI HACE FALTA ======
-// URL ya está configurada para tu proyecto
-const SUPABASE_URL_HARDCODED = "https://ynmikutonikslgtdlbbz.supabase.co";
-// Pega tu anon key aquí si quieres que funcione sin config.js
-// Puedes obtenerla en: https://supabase.com/dashboard/project/ynmikutonikslgtdlbbz/settings/api
-const SUPABASE_ANON_KEY_HARDCODED = "PEGA_AQUI_TU_ANON_KEY_REAL"; 
-// ===========================================================
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let SUPABASE_URL = null;
-let SUPABASE_ANON_KEY = null;
-let supabaseClient = null;
-let datosActuales = [];
-let tablaDetectada = null;
-let colFechaDetectada = null;
+document.getElementById('fecha').value = new Date().toISOString().slice(0,16);
 
-// Carga config.js si existe (para compatibilidad con tu repo actual)
-if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('PEGA')) {
-  // config.js ya definió
-  SUPABASE_URL = window.SUPABASE_URL || SUPABASE_URL;
-}
-if (typeof SUPABASE_ANON_KEY !== 'undefined' && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('PEGA')) {
-  SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
-}
-
-// Prioridad: config.js > hardcoded > localStorage
-function resolverConfig() {
-  // Intenta desde window (config.js)
-  let url = (typeof window.SUPABASE_URL !== 'undefined' ? window.SUPABASE_URL : null) || SUPABASE_URL_HARDCODED;
-  let key = (typeof window.SUPABASE_ANON_KEY !== 'undefined' ? window.SUPABASE_ANON_KEY : null) || SUPABASE_ANON_KEY_HARDCODED;
-  
-  // localStorage override
-  const lsUrl = localStorage.getItem('rosita_supabase_url');
-  const lsKey = localStorage.getItem('rosita_anon_key');
-  if (lsUrl && lsKey) { url = lsUrl; key = lsKey; }
-  
-  // Si hardcoded sigue con placeholder, ignóralo
-  if (key && key.includes('PEGA_AQUI')) key = lsKey || null;
-  if (!url || url.includes('PEGA')) url = "https://ynmikutonikslgtdlbbz.supabase.co";
-
-  SUPABASE_URL = url;
-  SUPABASE_ANON_KEY = key;
-}
-
-function initClient() {
-  resolverConfig();
-  const banner = document.getElementById('configBanner');
-  if (!SUPABASE_ANON_KEY) {
-    banner.classList.remove('hidden');
-    document.getElementById('debug').textContent = `Falta anon key. URL: ${SUPABASE_URL}\nVe a https://supabase.com/dashboard/project/ynmikutonikslgtdlbbz/settings/api y copia anon public`;
-    return false;
-  }
-  banner.classList.add('hidden');
-  try {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    return true;
-  } catch(e) {
-    document.getElementById('debug').textContent = 'Error cliente: ' + e.message;
-    return false;
-  }
-}
-
-document.getElementById('saveKeyBtn').addEventListener('click', () => {
-  const k = document.getElementById('anonKeyInput').value.trim();
-  if (!k || k.length < 20) { alert('Clave no válida'); return; }
-  localStorage.setItem('rosita_anon_key', k);
-  localStorage.setItem('rosita_supabase_url', SUPABASE_URL);
-  alert('Clave guardada. Recargando...');
-  location.reload();
-});
-
-// Tabs
-document.getElementById('tab-consolidado').addEventListener('click', () => {
-  document.getElementById('view-consolidado').classList.remove('hidden');
-  document.getElementById('view-form').classList.add('hidden');
-  document.getElementById('tab-consolidado').className = 'px-4 py-2 font-medium tab-active';
-  document.getElementById('tab-form').className = 'px-4 py-2 font-medium tab-inactive';
-});
-document.getElementById('tab-form').addEventListener('click', () => {
-  document.getElementById('view-form').classList.remove('hidden');
-  document.getElementById('view-consolidado').classList.add('hidden');
-  document.getElementById('tab-form').className = 'px-4 py-2 font-medium tab-active';
-  document.getElementById('tab-consolidado').className = 'px-4 py-2 font-medium tab-inactive';
-});
-
-function setDefaultDates() {
-  const hoy = new Date();
-  const hace30 = new Date(); hace30.setDate(hoy.getDate()-30);
-  document.getElementById('desde').value = hace30.toISOString().split('T')[0];
-  document.getElementById('hasta').value = hoy.toISOString().split('T')[0];
-  document.getElementById('f_fecha').value = hoy.toISOString().split('T')[0];
-}
-
-async function cargarConsolidado() {
-  if (!supabaseClient && !initClient()) return;
-  const desde = document.getElementById('desde').value;
-  const hasta = document.getElementById('hasta').value;
-  const desdeISO = new Date(desde+'T00:00:00').toISOString();
-  const hastaISO = new Date(hasta+'T23:59:59').toISOString();
-  document.getElementById('status').textContent = 'Cargando...';
-
-  const tablas = ['reportes','reportes_rosita','reporte_rosita','reportes_diarios','rosita','reporte'];
-  const colsFecha = ['fecha','created_at','fecha_reporte','timestamp'];
-
-  let data = null;
-  let debugLog = '';
-
-  for (const tabla of tablas) {
-    for (const col of colsFecha) {
-      const res = await supabaseClient.from(tabla).select('*').gte(col, desdeISO).lte(col, hastaISO).order(col,{ascending:false}).limit(1000);
-      debugLog += `${tabla}.${col}: ${res.error ? 'ERROR '+res.error.message : 'OK '+res.data.length+' filas'}\n`;
-      if (!res.error) { data = res.data; tablaDetectada = tabla; colFechaDetectada = col; break; }
-    }
-    if (data) break;
-  }
-
-  document.getElementById('debug').textContent = debugLog + `\nTabla usada: ${tablaDetectada || 'ninguna'}\nCol fecha: ${colFechaDetectada || 'ninguna'}\nURL: ${SUPABASE_URL}`;
-
-  if (!data) {
-    document.getElementById('status').innerHTML = '<span class="text-red-600">No se encontraron datos. Verifica que la tabla existe y que RLS permite SELECT anon. Mira detalles técnicos abajo.</span>';
-    // Intenta mostrar 1 fila sin filtro para debug
-    for (const tabla of tablas) {
-      const r = await supabaseClient.from(tabla).select('*').limit(1);
-      if (!r.error && r.data.length>0) {
-        document.getElementById('debug').textContent += `\n\nMuestra de ${tabla} (sin filtro):\n` + JSON.stringify(r.data[0], null, 2);
-        break;
-      }
-    }
-    return;
-  }
-
-  datosActuales = data;
-  document.getElementById('status').textContent = `${datosActuales.length} reportes encontrados`;
-
-  // Resumen
-  document.getElementById('total').textContent = datosActuales.length;
-  const diasUnicos = new Set(datosActuales.map(r => String(r[colFechaDetectada]||'').split('T')[0])).size;
-  document.getElementById('dias').textContent = `${diasUnicos} días con reportes`;
-
-  const conteo = {};
-  datosActuales.forEach(r => { const c = r.cuidadora || r.nombre_cuidadora || 'Sin nombre'; conteo[c]=(conteo[c]||0)+1; });
-  document.getElementById('porCuidadora').innerHTML = Object.entries(conteo).map(([n,c]) => {
-    const color = n.toLowerCase().includes('aracely')?'bg-purple-100 text-purple-800': n.toLowerCase().includes('ibeth')?'bg-blue-100 text-blue-800': n.toLowerCase().includes('carmita')?'bg-orange-100 text-orange-800':'bg-gray-100';
-    return `<div class="flex justify-between items-center"><span class="px-2 py-1 rounded-full text-xs ${color}">${n}</span><b class="text-sm">${c}</b></div>`;
-  }).join('') || '<span class="text-xs text-gray-400">Sin datos</span>';
-
-  // Tabla dinámica - muestra todas las columnas, prioriza fecha y cuidadora
-  const allKeys = [...new Set(datosActuales.flatMap(o=>Object.keys(o)))];
-  const prefer = ['fecha','created_at','cuidadora','hora_acostarse','como_durmio','veces_desperto','motivo_despertar','fue_bano','como_amanecio','estado_general','desayuno','almuerzo','merienda','hidratacion','medicacion','presion_arterial','actividades','estado_casa','observaciones'];
-  const sorted = [...prefer.filter(k=>allKeys.includes(k)), ...allKeys.filter(k=>!prefer.includes(k) && !['id'].includes(k))];
-
-  document.getElementById('thead').innerHTML = '<tr>' + sorted.map(k=>`<th class="px-2 py-2 text-left whitespace-nowrap capitalize">${k.replace(/_/g,' ')}</th>`).join('') + '</tr>';
-  document.getElementById('tbody').innerHTML = datosActuales.map(r=>{
-    return '<tr class="border-t hover:bg-gray-50">' + sorted.map(k=>{
-      let v = r[k]; if(v==null) v=''; 
-      if((k==='fecha'||k==='created_at') && v){ try{v=new Date(v).toLocaleString('es-EC');}catch{}}
-      const short = String(v).length>60?String(v).substring(0,60)+'...':v;
-      return `<td class="px-2 py-1 max-w-[180px] truncate" title="${String(r[k]||'').replace(/"/g,'')}">${short}</td>`;
-    }).join('') + '</tr>';
-  }).join('');
-}
-
-function exportarCSV() {
-  if(datosActuales.length===0){alert('No hay datos');return;}
-  const keys = [...new Set(datosActuales.flatMap(o=>Object.keys(o)))];
-  const rows = [keys.join(',')];
-  datosActuales.forEach(r=>{
-    rows.push(keys.map(k=>`"${String(r[k]||'').replace(/"/g,'""').replace(/\n/g,' ')}"`).join(','));
-  });
-  const blob = new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url;
-  a.download=`rosita-consolidado-${document.getElementById('desde').value}_a_${document.getElementById('hasta').value}-3-cuidadoras.csv`;
-  a.click();
-}
-
-function copiarSheets() {
-  if(datosActuales.length===0){alert('No hay datos');return;}
-  const keys = [...new Set(datosActuales.flatMap(o=>Object.keys(o)))];
-  const lines = [keys.join('\t')];
-  datosActuales.forEach(r=>{ lines.push(keys.map(k=>String(r[k]||'').replace(/\t|\n/g,' ')).join('\t')); });
-  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('Copiado! Abre Google Sheets y pega en A1. Tendrás las 3 cuidadoras juntas.'));
-}
-
-document.getElementById('btnCSV').addEventListener('click', exportarCSV);
-document.getElementById('btnCopy').addEventListener('click', copiarSheets);
-document.getElementById('btnFiltrar').addEventListener('click', cargarConsolidado);
-
-// Form submit - auto-detecta columnas válidas
-document.getElementById('reportForm').addEventListener('submit', async (e)=>{
+document.getElementById('form').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  if(!supabaseClient && !initClient()){ alert('Falta anon key'); return; }
-  document.getElementById('formStatus').textContent='Guardando...';
+  const btn = document.getElementById('btn');
+  const status = document.getElementById('status');
+  btn.disabled = true; btn.textContent = 'Enviando...'; status.textContent = '';
+
   const payload = {
-    cuidadora: document.getElementById('f_cuidadora').value,
-    fecha: new Date(document.getElementById('f_fecha').value + 'T12:00:00').toISOString(),
-    hora_acostarse: document.getElementById('f_hora_acostarse').value,
-    como_durmio: document.getElementById('f_como_durmio').value,
-    veces_desperto: document.getElementById('f_veces_desperto').value,
-    motivo_despertar: document.getElementById('f_motivo_despertar').value,
-    fue_bano: document.getElementById('f_fue_bano').value,
-    como_amanecio: document.getElementById('f_como_amanecio').value,
-    estado_general: document.getElementById('f_estado_general').value,
-    desayuno: document.getElementById('f_desayuno').value,
-    almuerzo: document.getElementById('f_almuerzo').value,
-    merienda: document.getElementById('f_merienda').value,
-    hidratacion: document.getElementById('f_hidratacion').value,
-    medicacion: document.getElementById('f_medicacion').value,
-    presion_arterial: document.getElementById('f_presion').value,
-    actividades: document.getElementById('f_actividades').value,
-    estado_casa: document.getElementById('f_estado_casa').value,
-    observaciones: document.getElementById('f_observaciones').value,
+    cuidadora: document.getElementById('cuidadora').value,
+    fecha: new Date(document.getElementById('fecha').value).toISOString(),
+    hora_acostarse: document.getElementById('hora_acostarse').value,
+    como_durmio: document.getElementById('como_durmio').value,
+    veces_desperto: document.getElementById('veces_desperto').value,
+    motivo_despertar: document.getElementById('motivo_despertar').value,
+    fue_bano: document.getElementById('fue_bano').value,
+    como_amanecio: document.getElementById('como_amanecio').value,
+    estado_general: document.getElementById('estado_general').value,
+    desayuno: document.getElementById('desayuno').value,
+    almuerzo: document.getElementById('almuerzo').value,
+    merienda: document.getElementById('merienda').value,
+    hidratacion: document.getElementById('hidratacion').value,
+    medicacion: document.getElementById('medicacion').value,
+    presion_arterial: document.getElementById('presion_arterial').value,
+    actividades: document.getElementById('actividades').value,
+    estado_casa: document.getElementById('estado_casa').value,
+    observaciones: document.getElementById('observaciones').value,
   };
 
-  // Intenta insertar en tabla detectada, si no, prueba todas
-  const tablas = tablaDetectada ? [tablaDetectada] : ['reportes','reportes_rosita','reporte_rosita'];
-  let ok = false, lastErr=null;
+  // Intenta insertar en tablas posibles
+  const tablas = ['reportes','reportes_rosita','reporte_rosita','reportes_diarios'];
+  let ok=false, lastErr=null;
   for(const tabla of tablas){
-    // Filtra solo columnas que existen (intenta primero con todas, si falla por columna, filtra)
-    let res = await supabaseClient.from(tabla).insert([payload]).select();
-    if(!res.error){ ok=true; break; }
-    lastErr = res.error;
-    // Si error por columna inexistente, intenta con payload mínimo
-    if(res.error.message.includes('column') || res.error.message.includes('schema')){
+    const { error } = await supabaseClient.from(tabla).insert([payload]);
+    if(!error){ ok=true; break; }
+    lastErr=error;
+    // Si error es por columna inexistente, intenta solo con campos básicos
+    if(error.message.includes('column')){
       const minPayload = { cuidadora: payload.cuidadora, fecha: payload.fecha, observaciones: payload.observaciones, estado_general: payload.estado_general };
-      // Agrega todo lo que no falle
-      const retry = await supabaseClient.from(tabla).insert([minPayload]).select();
+      const retry = await supabaseClient.from(tabla).insert([minPayload]);
       if(!retry.error){ ok=true; break; }
-      lastErr = retry.error;
+      lastErr=retry.error;
     }
   }
 
   if(ok){
-    document.getElementById('formStatus').innerHTML='<span class="text-green-600">✓ Reporte guardado. Aparecerá en el consolidado de 30 días.</span>';
+    status.innerHTML = '<span class="text-green-600">✓ Reporte enviado correctamente</span>';
     e.target.reset();
-    setDefaultDates();
-    setTimeout(()=>{ document.getElementById('tab-consolidado').click(); cargarConsolidado(); }, 1000);
+    document.getElementById('fecha').value = new Date().toISOString().slice(0,16);
   } else {
-    document.getElementById('formStatus').innerHTML=`<span class="text-red-600">Error: ${lastErr?.message || 'desconocido'}. Revisa políticas RLS en Supabase.</span>`;
+    status.innerHTML = `<span class="text-red-600">Error: ${lastErr?.message || 'No se pudo guardar'}. Verifica que ejecutaste supabase-schema.sql y que RLS permite INSERT anon.</span>`;
   }
-});
-
-window.addEventListener('DOMContentLoaded', ()=>{
-  setDefaultDates();
-  // Carga config.js si existe (no rompe si no existe)
-  const s = document.createElement('script');
-  s.src = './config.js';
-  s.onload = ()=>{ initClient(); cargarConsolidado(); };
-  s.onerror = ()=>{ initClient(); cargarConsolidado(); };
-  document.head.appendChild(s);
-  // También intenta inmediato
-  setTimeout(()=>{ if(!supabaseClient) { initClient(); cargarConsolidado(); } }, 800);
+  btn.disabled=false; btn.textContent='Enviar reporte';
 });
 </script>
 </body>
