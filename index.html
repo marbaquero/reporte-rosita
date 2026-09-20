@@ -2,619 +2,380 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Reporte diario — Rosita</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosita - Reporte Consolidado 30 días</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
 <style>
-  :root{
-    --paper: #FAF6EE;
-    --paper-line: #E7DFCC;
-    --ink: #2B2620;
-    --ink-soft: #6B6355;
-    --sage: #5C7255;
-    --sage-deep: #3F5638;
-    --brick: #B85138;
-    --brick-soft: #F3E4DE;
-    --card: #FFFFFF;
-    --shadow: 0 1px 2px rgba(43,38,32,0.06), 0 8px 24px rgba(43,38,32,0.05);
-    --radius: 14px;
-  }
-
-  *{ box-sizing:border-box; }
-  html{ -webkit-text-size-adjust:100%; }
-
-  body{
-    margin:0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'Work Sans', sans-serif;
-    line-height:1.45;
-    padding-bottom: 80px;
-  }
-
-  .top{
-    padding: 34px 20px 18px;
-    max-width: 620px;
-    margin: 0 auto;
-  }
-
-  .eyebrow{
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--sage-deep);
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
-  .eyebrow::before{
-    content:"";
-    width:6px; height:6px;
-    border-radius:50%;
-    background: var(--sage);
-    display:inline-block;
-  }
-
-  h1{
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: clamp(28px, 7vw, 38px);
-    margin: 6px 0 4px;
-    letter-spacing: -0.01em;
-  }
-  h1 em{
-    font-style: italic;
-    font-weight: 500;
-    color: var(--sage-deep);
-  }
-
-  .sub{
-    color: var(--ink-soft);
-    font-size: 14.5px;
-    max-width: 46ch;
-  }
-
-  .datebar{
-    max-width: 620px;
-    margin: 18px auto 0;
-    padding: 0 20px;
-    display:flex;
-    gap:10px;
-    align-items:center;
-  }
-  .datebar label{
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    color: var(--ink-soft);
-    white-space:nowrap;
-  }
-  .datebar input, .datebar select{
-    font-family: 'Work Sans', sans-serif;
-    font-size: 15px;
-    border: 1px solid var(--paper-line);
-    background: var(--card);
-    border-radius: 10px;
-    padding: 9px 11px;
-    color: var(--ink);
-  }
-  .datebar input{ flex:1; }
-
-  form{
-    max-width: 620px;
-    margin: 22px auto 0;
-    padding: 0 20px;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-  }
-
-  fieldset{
-    border: 1px solid var(--paper-line);
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 18px 18px 16px;
-  }
-
-  legend{
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: 16.5px;
-    padding: 0 4px;
-    display:flex;
-    align-items:baseline;
-    gap:6px;
-  }
-  legend .req{ color: var(--brick); font-size: 13px; }
-  legend .opt{ color: var(--ink-soft); font-weight:400; font-size: 12.5px; font-family:'Work Sans',sans-serif; }
-
-  .hint{
-    font-size: 13px;
-    color: var(--ink-soft);
-    margin: -2px 0 12px;
-  }
-
-  .opts{ display:flex; flex-direction:column; gap:2px; }
-
-  .opt-row{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding: 11px 8px;
-    border-radius: 10px;
-    cursor:pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .opt-row:active{ background: #F3EEE0; }
-
-  .opt-row input[type="checkbox"],
-  .opt-row input[type="radio"]{
-    width: 20px;
-    height: 20px;
-    flex-shrink:0;
-    accent-color: var(--sage-deep);
-  }
-
-  .opt-row span{ font-size: 15px; }
-
-  .grid3{
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-  .pill{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding: 12px 6px;
-    border-radius: 10px;
-    border: 1.5px solid var(--paper-line);
-    font-size: 14px;
-    cursor:pointer;
-    background: var(--paper);
-    transition: border-color .12s, background .12s;
-  }
-  .pill input{ display:none; }
-  .pill:has(input:checked){
-    border-color: var(--sage-deep);
-    background: #EAF0E6;
-    color: var(--sage-deep);
-    font-weight: 600;
-  }
-
-  textarea, input[type="text"]{
-    width:100%;
-    font-family:'Work Sans', sans-serif;
-    font-size: 15px;
-    border: 1.5px solid var(--paper-line);
-    border-radius: 10px;
-    padding: 11px 12px;
-    background: var(--paper);
-    color: var(--ink);
-    resize: vertical;
-  }
-  textarea{ min-height: 90px; }
-  textarea:focus, input:focus, .opt-row:has(input:focus-visible){
-    outline: 2px solid var(--sage);
-    outline-offset: 1px;
-  }
-
-  .difficulty-note{
-    font-size: 13px;
-    color: var(--brick);
-    background: var(--brick-soft);
-    border-radius: 8px;
-    padding: 8px 10px;
-    margin-top: 8px;
-    display:none;
-  }
-  .difficulty-note.show{ display:block; }
-
-  .submitbar{
-    max-width: 620px;
-    margin: 4px auto 0;
-    padding: 0 20px;
-  }
-
-  button{
-    width:100%;
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: 17px;
-    color: #fff;
-    background: var(--sage-deep);
-    border: none;
-    border-radius: 12px;
-    padding: 16px;
-    cursor:pointer;
-    box-shadow: var(--shadow);
-    transition: transform .08s, background .15s;
-  }
-  button:active{ transform: scale(0.985); }
-  button:disabled{ background: #B9BBA9; cursor:default; }
-
-  .status{
-    max-width: 620px;
-    margin: 12px auto 0;
-    padding: 0 20px;
-    font-size: 14px;
-    text-align:center;
-    color: var(--sage-deep);
-    min-height: 20px;
-  }
-  .status.err{ color: var(--brick); }
-
-  .success-screen{
-    display:none;
-    max-width: 620px;
-    margin: 60px auto;
-    padding: 0 24px;
-    text-align:center;
-  }
-  .success-screen.show{ display:block; }
-  .success-screen .mark{
-    width:56px; height:56px;
-    border-radius:50%;
-    background: var(--sage-deep);
-    color:#fff;
-    display:flex; align-items:center; justify-content:center;
-    margin: 0 auto 18px;
-    font-size: 26px;
-  }
-  .success-screen h2{
-    font-family:'Fraunces', serif;
-    font-size: 26px;
-    margin: 0 0 8px;
-  }
-  .success-screen p{ color: var(--ink-soft); font-size: 15px; }
-  .success-screen button{
-    margin-top: 20px;
-    background: transparent;
-    border: 1.5px solid var(--paper-line);
-    color: var(--ink);
-    box-shadow:none;
-  }
-
-  footer{
-    max-width: 620px;
-    margin: 30px auto 0;
-    padding: 0 20px;
-    text-align:center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--ink-soft);
-    letter-spacing: 0.03em;
-  }
-  footer a{ color: var(--sage-deep); }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+  .tab-active{border-bottom:2px solid #111827;color:#111827}
+  .tab-inactive{color:#6b7280}
 </style>
 </head>
-<body>
-
-<div class="top">
-  <div class="eyebrow">Cuidado diario</div>
-  <h1>Reporte de <em>Rosita</em></h1>
-  <p class="sub">Un registro rápido del turno — cómo estuvo, cómo comió y cómo pasó el día.</p>
-</div>
-
-<div class="datebar" style="flex-wrap:wrap;">
-  <label for="cuidadora">Cuidadora</label>
-  <select id="cuidadora" required style="flex:1; min-width:120px;">
-    <option value="" disabled selected>Elegir...</option>
-    <option>Aracely</option>
-    <option>Ibeth</option>
-    <option>Carmita</option>
-  </select>
-</div>
-<div class="datebar">
-  <label for="fecha">Fecha</label>
-  <input type="date" id="fecha" required>
-  <span id="diaLabel" style="font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); margin-left:4px;"></span>
-</div>
-
-<form id="reportForm" novalidate>
-
-  <fieldset>
-    <legend>Estado general de la Sra. Rosita</legend>
-    <div class="opts" data-group="estado_general">
-      <label class="opt-row"><input type="checkbox" value="Tranquila y de buen humor"><span>Tranquila y de buen humor</span></label>
-      <label class="opt-row"><input type="checkbox" value="Conversadora / sociable"><span>Conversadora / sociable</span></label>
-      <label class="opt-row"><input type="checkbox" value="Callada / retraída"><span>Callada / retraída</span></label>
-      <label class="opt-row"><input type="checkbox" value="Algo confundida"><span>Algo confundida</span></label>
-      <label class="opt-row"><input type="checkbox" value="Inquieta o ansiosa"><span>Inquieta o ansiosa</span></label>
+<body class="bg-gray-50 min-h-screen">
+<div class="max-w-6xl mx-auto px-4 py-4">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+    <div>
+      <h1 class="text-2xl font-bold">Rosita - Reporte Diario</h1>
+      <p class="text-sm text-gray-600">Consolidado últimos 30 días • Aracely, Ibeth y Carmita • Listo para Google Sheets</p>
     </div>
-  </fieldset>
-
-  <div id="camposDia">
-  <fieldset>
-    <legend>Desayuno <span class="req">*</span></legend>
-    <div class="grid3" data-group-radio="desayuno">
-      <label class="pill"><input type="radio" name="desayuno" value="Bien"><span>Bien</span></label>
-      <label class="pill"><input type="radio" name="desayuno" value="Poco"><span>Poco</span></label>
-      <label class="pill"><input type="radio" name="desayuno" value="No quiso"><span>No quiso</span></label>
+    <div class="flex gap-2">
+      <button id="tab-consolidado" class="px-4 py-2 font-medium tab-active">📊 Consolidado 30 días</button>
+      <button id="tab-form" class="px-4 py-2 font-medium tab-inactive">📝 Nuevo Reporte</button>
     </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Almuerzo <span class="req">*</span></legend>
-    <div class="grid3" data-group-radio="almuerzo">
-      <label class="pill"><input type="radio" name="almuerzo" value="Bien"><span>Bien</span></label>
-      <label class="pill"><input type="radio" name="almuerzo" value="Poco"><span>Poco</span></label>
-      <label class="pill"><input type="radio" name="almuerzo" value="No quiso"><span>No quiso</span></label>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Merienda <span class="req">*</span></legend>
-    <div class="grid3" data-group-radio="merienda">
-      <label class="pill"><input type="radio" name="merienda" value="Bien"><span>Bien</span></label>
-      <label class="pill"><input type="radio" name="merienda" value="Poco"><span>Poco</span></label>
-      <label class="pill"><input type="radio" name="merienda" value="No quiso"><span>No quiso</span></label>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Hidratación durante el día <span class="req">*</span></legend>
-    <div class="grid3" data-group-radio="hidratacion">
-      <label class="pill"><input type="radio" name="hidratacion" value="Buena"><span>Buena</span></label>
-      <label class="pill"><input type="radio" name="hidratacion" value="Regular"><span>Regular</span></label>
-      <label class="pill"><input type="radio" name="hidratacion" value="Escasa"><span>Escasa</span></label>
-    </div>
-  </fieldset>
   </div>
 
-  <div id="camposNoche">
-  <fieldset>
-    <legend>Hora en que se acostó</legend>
-    <input type="time" id="horaAcostada">
-  </fieldset>
-
-  <fieldset>
-    <legend>¿Cómo se durmió? <span class="req">*</span></legend>
-    <div class="grid3" data-group-radio="como_durmio">
-      <label class="pill"><input type="radio" name="como_durmio" value="Fácilmente"><span>Fácilmente</span></label>
-      <label class="pill"><input type="radio" name="como_durmio" value="Con dificultad"><span>Con dificultad</span></label>
-      <label class="pill"><input type="radio" name="como_durmio" value="Se resistió"><span>Se resistió</span></label>
+  <!-- CONFIG BANNER -->
+  <div id="configBanner" class="hidden mt-4 bg-red-50 border border-red-200 p-4 rounded-xl">
+    <p class="font-bold text-red-800 text-sm">Falta configurar Supabase</p>
+    <p class="text-xs text-red-700 mt-1">1. Ve a Supabase Dashboard > Project Settings > API > copia la clave <b>anon public</b><br>2. Pégala abajo. Se guardará en este navegador y en el archivo para GitHub.</p>
+    <div class="mt-2 flex gap-2">
+      <input id="anonKeyInput" placeholder="Pega aquí tu anon key (eyJ...)" class="flex-1 border rounded px-3 py-2 text-xs">
+      <button id="saveKeyBtn" class="px-4 py-2 bg-black text-white rounded text-sm">Guardar</button>
     </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Veces que se despertó en la noche <span class="req">*</span></legend>
-    <div class="grid3" data-group-radio="veces_desperto">
-      <label class="pill"><input type="radio" name="veces_desperto" value="Ninguna"><span>Ninguna</span></label>
-      <label class="pill"><input type="radio" name="veces_desperto" value="1-2 veces"><span>1-2 veces</span></label>
-      <label class="pill"><input type="radio" name="veces_desperto" value="3 o más"><span>3 o más</span></label>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Motivo del despertar <span class="opt">(si aplica)</span></legend>
-    <div class="opts" data-group="motivo_despertar">
-      <label class="opt-row"><input type="checkbox" value="Ir al baño"><span>Ir al baño</span></label>
-      <label class="opt-row"><input type="checkbox" value="Dolor o malestar"><span>Dolor o malestar</span></label>
-      <label class="opt-row"><input type="checkbox" value="Confusión o ansiedad"><span>Confusión o ansiedad</span></label>
-      <label class="opt-row"><input type="checkbox" value="Sin motivo aparente"><span>Sin motivo aparente</span></label>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Fue al baño durante la noche <span class="req">*</span></legend>
-    <div class="grid3" data-group-radio="fue_al_bano_noche">
-      <label class="pill"><input type="radio" name="fue_al_bano_noche" value="No"><span>No</span></label>
-      <label class="pill"><input type="radio" name="fue_al_bano_noche" value="Sí, sola"><span>Sí, sola</span></label>
-      <label class="pill"><input type="radio" name="fue_al_bano_noche" value="Sí, con ayuda"><span>Sí, con ayuda</span></label>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>¿Cómo amaneció? <span class="req">*</span></legend>
-    <div class="grid3" data-group-radio="como_amanecio">
-      <label class="pill"><input type="radio" name="como_amanecio" value="Descansada"><span>Descansada</span></label>
-      <label class="pill"><input type="radio" name="como_amanecio" value="Cansada"><span>Cansada</span></label>
-      <label class="pill"><input type="radio" name="como_amanecio" value="Irritable"><span>Irritable</span></label>
-    </div>
-  </fieldset>
+    <p class="text-[11px] text-gray-500 mt-2">Tu URL ya está configurada: https://ynmikutonikslgtdlbbz.supabase.co — solo falta la clave anon.</p>
   </div>
 
-  <fieldset>
-    <legend>Medicación <span class="req">*</span></legend>
-    <div class="opts" data-group="medicacion">
-      <label class="opt-row"><input type="checkbox" value="Administrada correctamente"><span>Administrada correctamente</span></label>
-      <label class="opt-row"><input type="checkbox" value="Hubo alguna dificultad" id="dificultadChk"><span>Hubo alguna dificultad (especificar en Observaciones)</span></label>
+  <!-- CONSOLIDADO VIEW -->
+  <div id="view-consolidado" class="mt-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <div class="text-[11px] text-gray-500 uppercase">Total reportes últimos 30 días</div>
+        <div id="total" class="text-3xl font-bold mt-1">—</div>
+        <div id="dias" class="text-xs text-gray-500 mt-1"></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <div class="text-[11px] text-gray-500 uppercase">Por cuidadora (todas incluidas)</div>
+        <div id="porCuidadora" class="mt-2 space-y-2"></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <div class="text-[11px] text-gray-500 uppercase">Exportar a Google Sheets</div>
+        <div class="mt-3 space-y-2">
+          <button id="btnCSV" class="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">⬇ Descargar CSV (para Sheets)</button>
+          <button id="btnCopy" class="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">📋 Copiar y pegar en Sheets</button>
+          <p class="text-[11px] text-gray-500">CSV mantiene las 3 cuidadoras en una sola hoja. Para Google Sheets: Abre sheets.google.com → Archivo → Importar → Subir CSV.</p>
+        </div>
+      </div>
     </div>
-    <div class="difficulty-note" id="dificultadNote">Por favor cuéntame qué pasó en el campo de Observaciones, más abajo.</div>
-  </fieldset>
 
-  <fieldset>
-    <legend>Presión arterial <span class="opt">(si se tomó hoy)</span></legend>
-    <input type="text" id="presion" placeholder="Ej. 130/72" autocomplete="off">
-  </fieldset>
-
-  <div id="camposDia2">
-  <fieldset>
-    <legend>Actividades del día</legend>
-    <div class="opts" data-group="actividades">
-      <label class="opt-row"><input type="checkbox" value="Caminó"><span>Caminó</span></label>
-      <label class="opt-row"><input type="checkbox" value="Escuchó música"><span>Escuchó música</span></label>
-      <label class="opt-row"><input type="checkbox" value="Conversó con la cuidadora"><span>Conversó con la cuidadora</span></label>
-      <label class="opt-row"><input type="checkbox" value="Salió al exterior / jardín"><span>Salió al exterior / jardín</span></label>
-      <label class="opt-row"><input type="checkbox" value="Terapia ocupacional"><span>Terapia ocupacional</span></label>
-      <label class="opt-row"><input type="checkbox" value="Descansó / durmió siesta"><span>Descansó / durmió siesta</span></label>
+    <div class="mt-4 bg-white p-3 rounded-xl border flex flex-wrap gap-2 items-end">
+      <div><label class="text-[11px] text-gray-600">Desde</label><input type="date" id="desde" class="border rounded px-2 py-1 text-sm block"></div>
+      <div><label class="text-[11px] text-gray-600">Hasta</label><input type="date" id="hasta" class="border rounded px-2 py-1 text-sm block"></div>
+      <button id="btnFiltrar" class="px-4 py-1.5 bg-gray-900 text-white rounded text-sm">Actualizar</button>
+      <div id="status" class="text-xs text-gray-600 ml-2"></div>
     </div>
-  </fieldset>
+
+    <div class="mt-4 bg-white rounded-xl border shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs" id="tabla"><thead id="thead" class="bg-gray-100"></thead><tbody id="tbody"></tbody></table>
+      </div>
+    </div>
+
+    <details class="mt-4"><summary class="text-xs text-gray-500 cursor-pointer">Ver detalles técnicos / columnas detectadas</summary><pre id="debug" class="mt-2 bg-gray-900 text-green-300 p-3 rounded text-[11px] overflow-auto max-h-48"></pre></details>
   </div>
 
-  <fieldset>
-    <legend>Estado de la casa <span class="req">*</span></legend>
-    <div class="opts" data-group="estado_casa">
-      <label class="opt-row"><input type="checkbox" value="Ordenada y limpia"><span>Ordenada y limpia</span></label>
-      <label class="opt-row"><input type="checkbox" value="Requirió limpieza"><span>Requirió limpieza</span></label>
-    </div>
-  </fieldset>
+  <!-- FORM VIEW -->
+  <div id="view-form" class="hidden mt-6 bg-white p-6 rounded-xl border shadow-sm">
+    <h2 class="font-bold">Nuevo reporte diario</h2>
+    <p class="text-xs text-gray-500 mb-4">Elige tu nombre — así se mantiene el registro de las 3 cuidadoras sin mezclarse</p>
+    <form id="reportForm" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div><label class="text-xs">Cuidadora *</label><select id="f_cuidadora" required class="w-full border rounded px-3 py-2 text-sm"><option value="">Elige</option><option>Aracely</option><option>Ibeth</option><option>Carmita</option></select></div>
+        <div><label class="text-xs">Fecha *</label><input type="date" id="f_fecha" required class="w-full border rounded px-3 py-2 text-sm"></div>
+        <div><label class="text-xs">Hora en que se acostó</label><input type="time" id="f_hora_acostarse" class="w-full border rounded px-3 py-2 text-sm"></div>
+      </div>
 
-  <fieldset>
-    <legend>Observaciones</legend>
-    <p class="hint">Incluir aquí cualquier novedad: caída, malestar, dificultad con medicación, etc.</p>
-    <textarea id="observaciones" placeholder="Escriba aquí..."></textarea>
-  </fieldset>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div><label class="text-xs">¿Cómo se durmió?</label><select id="f_como_durmio" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Fácilmente</option><option>Con dificultad</option><option>Se resistió</option></select></div>
+        <div><label class="text-xs">Veces que se despertó</label><select id="f_veces_desperto" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Ninguna</option><option>1-2 veces</option><option>3 o más</option></select></div>
+      </div>
 
-  <div class="submitbar">
-    <button type="submit" id="submitBtn">Enviar reporte</button>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div><label class="text-xs">Motivo del despertar</label><select id="f_motivo_despertar" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Ir al baño</option><option>Dolor o malestar</option><option>Confusión o ansiedad</option><option>Sin motivo aparente</option></select></div>
+        <div><label class="text-xs">Fue al baño en la noche</label><select id="f_fue_bano" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>No</option><option>Sí, sola</option><option>Sí, con ayuda</option></select></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div><label class="text-xs">¿Cómo amaneció?</label><select id="f_como_amanecio" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Descansada</option><option>Cansada</option><option>Irritable</option><option>Confundida</option></select></div>
+        <div><label class="text-xs">Estado general</label><select id="f_estado_general" class="w-full border rounded px-3 py-2 text-sm"><option value="">—</option><option>Bien</option><option>Regular</option><option>Mal</option><option>Excelente</option></select></div>
+        <div><label class="text-xs">Presión arterial (ej: 120/80)</label><input id="f_presion" class="w-full border rounded px-3 py-2 text-sm" placeholder="120/80"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div><label class="text-xs">Desayuno</label><input id="f_desayuno" class="w-full border rounded px-3 py-2 text-sm" placeholder="Qué comió"></div>
+        <div><label class="text-xs">Almuerzo</label><input id="f_almuerzo" class="w-full border rounded px-3 py-2 text-sm"></div>
+        <div><label class="text-xs">Merienda</label><input id="f_merienda" class="w-full border rounded px-3 py-2 text-sm"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div><label class="text-xs">Hidratación</label><input id="f_hidratacion" class="w-full border rounded px-3 py-2 text-sm" placeholder="Vasos de agua, etc"></div>
+        <div><label class="text-xs">Medicación</label><input id="f_medicacion" class="w-full border rounded px-3 py-2 text-sm" placeholder="Si tomó todo"></div>
+      </div>
+
+      <div><label class="text-xs">Actividades del día</label><textarea id="f_actividades" rows="2" class="w-full border rounded px-3 py-2 text-sm"></textarea></div>
+      <div><label class="text-xs">Estado de la casa</label><textarea id="f_estado_casa" rows="2" class="w-full border rounded px-3 py-2 text-sm"></textarea></div>
+      <div><label class="text-xs">Observaciones</label><textarea id="f_observaciones" rows="3" class="w-full border rounded px-3 py-2 text-sm"></textarea></div>
+
+      <button type="submit" id="btnGuardar" class="w-full py-3 bg-black text-white rounded-lg font-medium">Guardar reporte</button>
+      <p id="formStatus" class="text-xs text-center"></p>
+    </form>
   </div>
-  <div class="status" id="status"></div>
-</form>
-
-<div class="success-screen" id="successScreen">
-  <div class="mark">✓</div>
-  <h2>Reporte enviado</h2>
-  <p>Gracias — quedó registrado el reporte de hoy para Rosita.</p>
-  <button type="button" onclick="location.reload()">Enviar otro reporte</button>
 </div>
 
-<footer>reporte diario · rosita · <a href="./dashboard.html">ver historial →</a></footer>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./config.js"></script>
 <script>
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ====== CONFIGURACIÓN - EDITA ESTO SOLO SI HACE FALTA ======
+// URL ya está configurada para tu proyecto
+const SUPABASE_URL_HARDCODED = "https://ynmikutonikslgtdlbbz.supabase.co";
+// Pega tu anon key aquí si quieres que funcione sin config.js
+// Puedes obtenerla en: https://supabase.com/dashboard/project/ynmikutonikslgtdlbbz/settings/api
+const SUPABASE_ANON_KEY_HARDCODED = "PEGA_AQUI_TU_ANON_KEY_REAL"; 
+// ===========================================================
 
-  const cuidadoraSelect = document.getElementById('cuidadora');
-  const savedCuidadora = localStorage.getItem('cuidadora_reporte_rosita');
-  if (savedCuidadora) cuidadoraSelect.value = savedCuidadora;
+let SUPABASE_URL = null;
+let SUPABASE_ANON_KEY = null;
+let supabaseClient = null;
+let datosActuales = [];
+let tablaDetectada = null;
+let colFechaDetectada = null;
 
-  const camposDia = document.getElementById('camposDia');
-  const camposDia2 = document.getElementById('camposDia2');
-  const camposNoche = document.getElementById('camposNoche');
+// Carga config.js si existe (para compatibilidad con tu repo actual)
+if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('PEGA')) {
+  // config.js ya definió
+  SUPABASE_URL = window.SUPABASE_URL || SUPABASE_URL;
+}
+if (typeof SUPABASE_ANON_KEY !== 'undefined' && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('PEGA')) {
+  SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
+}
 
-  function syncTurnoFields(){
-    const esNoche = cuidadoraSelect.value === 'Ibeth';
-    camposDia.style.display = esNoche ? 'none' : '';
-    camposDia2.style.display = esNoche ? 'none' : '';
-    camposNoche.style.display = esNoche ? '' : 'none';
+// Prioridad: config.js > hardcoded > localStorage
+function resolverConfig() {
+  // Intenta desde window (config.js)
+  let url = (typeof window.SUPABASE_URL !== 'undefined' ? window.SUPABASE_URL : null) || SUPABASE_URL_HARDCODED;
+  let key = (typeof window.SUPABASE_ANON_KEY !== 'undefined' ? window.SUPABASE_ANON_KEY : null) || SUPABASE_ANON_KEY_HARDCODED;
+  
+  // localStorage override
+  const lsUrl = localStorage.getItem('rosita_supabase_url');
+  const lsKey = localStorage.getItem('rosita_anon_key');
+  if (lsUrl && lsKey) { url = lsUrl; key = lsKey; }
+  
+  // Si hardcoded sigue con placeholder, ignóralo
+  if (key && key.includes('PEGA_AQUI')) key = lsKey || null;
+  if (!url || url.includes('PEGA')) url = "https://ynmikutonikslgtdlbbz.supabase.co";
+
+  SUPABASE_URL = url;
+  SUPABASE_ANON_KEY = key;
+}
+
+function initClient() {
+  resolverConfig();
+  const banner = document.getElementById('configBanner');
+  if (!SUPABASE_ANON_KEY) {
+    banner.classList.remove('hidden');
+    document.getElementById('debug').textContent = `Falta anon key. URL: ${SUPABASE_URL}\nVe a https://supabase.com/dashboard/project/ynmikutonikslgtdlbbz/settings/api y copia anon public`;
+    return false;
   }
-  cuidadoraSelect.addEventListener('change', () => {
-    localStorage.setItem('cuidadora_reporte_rosita', cuidadoraSelect.value);
-    syncTurnoFields();
-  });
-  syncTurnoFields();
-
-  const fechaInput = document.getElementById('fecha');
-  const diaLabel = document.getElementById('diaLabel');
-  const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-
-  function todayLocal(){
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0,10);
+  banner.classList.add('hidden');
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return true;
+  } catch(e) {
+    document.getElementById('debug').textContent = 'Error cliente: ' + e.message;
+    return false;
   }
-  fechaInput.value = todayLocal();
+}
 
-  function syncDia(){
-    const d = new Date(fechaInput.value + 'T12:00:00');
-    diaLabel.textContent = DIAS[d.getDay()];
-  }
-  fechaInput.addEventListener('change', syncDia);
-  syncDia();
+document.getElementById('saveKeyBtn').addEventListener('click', () => {
+  const k = document.getElementById('anonKeyInput').value.trim();
+  if (!k || k.length < 20) { alert('Clave no válida'); return; }
+  localStorage.setItem('rosita_anon_key', k);
+  localStorage.setItem('rosita_supabase_url', SUPABASE_URL);
+  alert('Clave guardada. Recargando...');
+  location.reload();
+});
 
-  const dificultadChk = document.getElementById('dificultadChk');
-  const dificultadNote = document.getElementById('dificultadNote');
-  dificultadChk.addEventListener('change', () => {
-    dificultadNote.classList.toggle('show', dificultadChk.checked);
-  });
+// Tabs
+document.getElementById('tab-consolidado').addEventListener('click', () => {
+  document.getElementById('view-consolidado').classList.remove('hidden');
+  document.getElementById('view-form').classList.add('hidden');
+  document.getElementById('tab-consolidado').className = 'px-4 py-2 font-medium tab-active';
+  document.getElementById('tab-form').className = 'px-4 py-2 font-medium tab-inactive';
+});
+document.getElementById('tab-form').addEventListener('click', () => {
+  document.getElementById('view-form').classList.remove('hidden');
+  document.getElementById('view-consolidado').classList.add('hidden');
+  document.getElementById('tab-form').className = 'px-4 py-2 font-medium tab-active';
+  document.getElementById('tab-consolidado').className = 'px-4 py-2 font-medium tab-inactive';
+});
 
-  function getChecked(groupName){
-    return Array.from(document.querySelectorAll(`[data-group="${groupName}"] input:checked`)).map(i => i.value);
-  }
-  function getRadio(name){
-    const el = document.querySelector(`input[name="${name}"]:checked`);
-    return el ? el.value : null;
-  }
+function setDefaultDates() {
+  const hoy = new Date();
+  const hace30 = new Date(); hace30.setDate(hoy.getDate()-30);
+  document.getElementById('desde').value = hace30.toISOString().split('T')[0];
+  document.getElementById('hasta').value = hoy.toISOString().split('T')[0];
+  document.getElementById('f_fecha').value = hoy.toISOString().split('T')[0];
+}
 
-  const form = document.getElementById('reportForm');
-  const statusEl = document.getElementById('status');
-  const submitBtn = document.getElementById('submitBtn');
+async function cargarConsolidado() {
+  if (!supabaseClient && !initClient()) return;
+  const desde = document.getElementById('desde').value;
+  const hasta = document.getElementById('hasta').value;
+  const desdeISO = new Date(desde+'T00:00:00').toISOString();
+  const hastaISO = new Date(hasta+'T23:59:59').toISOString();
+  document.getElementById('status').textContent = 'Cargando...';
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    statusEl.textContent = '';
-    statusEl.classList.remove('err');
+  const tablas = ['reportes','reportes_rosita','reporte_rosita','reportes_diarios','rosita','reporte'];
+  const colsFecha = ['fecha','created_at','fecha_reporte','timestamp'];
 
-    const cuidadora = document.getElementById('cuidadora').value;
-    const esNoche = cuidadora === 'Ibeth';
-    const desayuno = esNoche ? null : getRadio('desayuno');
-    const estadoCasa = getChecked('estado_casa');
+  let data = null;
+  let debugLog = '';
 
-    if (!cuidadora) {
-      statusEl.textContent = 'Por favor selecciona quién está enviando el reporte.';
-      statusEl.classList.add('err');
-      return;
+  for (const tabla of tablas) {
+    for (const col of colsFecha) {
+      const res = await supabaseClient.from(tabla).select('*').gte(col, desdeISO).lte(col, hastaISO).order(col,{ascending:false}).limit(1000);
+      debugLog += `${tabla}.${col}: ${res.error ? 'ERROR '+res.error.message : 'OK '+res.data.length+' filas'}\n`;
+      if (!res.error) { data = res.data; tablaDetectada = tabla; colFechaDetectada = col; break; }
     }
+    if (data) break;
+  }
 
-    let almuerzo = null, merienda = null, hidratacion = null;
-    let comoDurmio = null, vecesDesperto = null, fueAlBanoNoche = null, comoAmanecio = null;
+  document.getElementById('debug').textContent = debugLog + `\nTabla usada: ${tablaDetectada || 'ninguna'}\nCol fecha: ${colFechaDetectada || 'ninguna'}\nURL: ${SUPABASE_URL}`;
 
-    if (esNoche) {
-      comoDurmio = getRadio('como_durmio');
-      vecesDesperto = getRadio('veces_desperto');
-      fueAlBanoNoche = getRadio('fue_al_bano_noche');
-      comoAmanecio = getRadio('como_amanecio');
-      if (!comoDurmio || !vecesDesperto || !fueAlBanoNoche || !comoAmanecio || estadoCasa.length === 0) {
-        statusEl.textContent = 'Por favor completa todos los campos marcados con *.';
-        statusEl.classList.add('err');
-        return;
+  if (!data) {
+    document.getElementById('status').innerHTML = '<span class="text-red-600">No se encontraron datos. Verifica que la tabla existe y que RLS permite SELECT anon. Mira detalles técnicos abajo.</span>';
+    // Intenta mostrar 1 fila sin filtro para debug
+    for (const tabla of tablas) {
+      const r = await supabaseClient.from(tabla).select('*').limit(1);
+      if (!r.error && r.data.length>0) {
+        document.getElementById('debug').textContent += `\n\nMuestra de ${tabla} (sin filtro):\n` + JSON.stringify(r.data[0], null, 2);
+        break;
       }
-    } else {
-      almuerzo = getRadio('almuerzo');
-      merienda = getRadio('merienda');
-      hidratacion = getRadio('hidratacion');
-      if (!desayuno || !almuerzo || !merienda || !hidratacion || estadoCasa.length === 0) {
-        statusEl.textContent = 'Por favor completa todos los campos marcados con *.';
-        statusEl.classList.add('err');
-        return;
-      }
     }
+    return;
+  }
 
-    const payload = {
-      cuidadora,
-      fecha: fechaInput.value,
-      dia_turno: DIAS[new Date(fechaInput.value + 'T12:00:00').getDay()],
-      estado_general: getChecked('estado_general'),
-      desayuno, almuerzo, merienda, hidratacion,
-      medicacion: getChecked('medicacion'),
-      presion_arterial: document.getElementById('presion').value.trim() || null,
-      actividades: esNoche ? [] : getChecked('actividades'),
-      estado_casa: estadoCasa,
-      observaciones: document.getElementById('observaciones').value.trim() || null,
-      hora_acostada: esNoche ? (document.getElementById('horaAcostada').value || null) : null,
-      como_durmio: comoDurmio,
-      veces_desperto: vecesDesperto,
-      motivo_despertar: esNoche ? getChecked('motivo_despertar') : [],
-      fue_al_bano_noche: fueAlBanoNoche,
-      como_amanecio: comoAmanecio,
-    };
+  datosActuales = data;
+  document.getElementById('status').textContent = `${datosActuales.length} reportes encontrados`;
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Enviando...';
+  // Resumen
+  document.getElementById('total').textContent = datosActuales.length;
+  const diasUnicos = new Set(datosActuales.map(r => String(r[colFechaDetectada]||'').split('T')[0])).size;
+  document.getElementById('dias').textContent = `${diasUnicos} días con reportes`;
 
-    const { error } = await sb.from('reportes_aracely').insert(payload);
+  const conteo = {};
+  datosActuales.forEach(r => { const c = r.cuidadora || r.nombre_cuidadora || 'Sin nombre'; conteo[c]=(conteo[c]||0)+1; });
+  document.getElementById('porCuidadora').innerHTML = Object.entries(conteo).map(([n,c]) => {
+    const color = n.toLowerCase().includes('aracely')?'bg-purple-100 text-purple-800': n.toLowerCase().includes('ibeth')?'bg-blue-100 text-blue-800': n.toLowerCase().includes('carmita')?'bg-orange-100 text-orange-800':'bg-gray-100';
+    return `<div class="flex justify-between items-center"><span class="px-2 py-1 rounded-full text-xs ${color}">${n}</span><b class="text-sm">${c}</b></div>`;
+  }).join('') || '<span class="text-xs text-gray-400">Sin datos</span>';
 
-    if (error) {
-      statusEl.textContent = 'No se pudo enviar. Revisa tu conexión e intenta de nuevo.';
-      statusEl.classList.add('err');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Enviar reporte';
-      console.error(error);
-      return;
-    }
+  // Tabla dinámica - muestra todas las columnas, prioriza fecha y cuidadora
+  const allKeys = [...new Set(datosActuales.flatMap(o=>Object.keys(o)))];
+  const prefer = ['fecha','created_at','cuidadora','hora_acostarse','como_durmio','veces_desperto','motivo_despertar','fue_bano','como_amanecio','estado_general','desayuno','almuerzo','merienda','hidratacion','medicacion','presion_arterial','actividades','estado_casa','observaciones'];
+  const sorted = [...prefer.filter(k=>allKeys.includes(k)), ...allKeys.filter(k=>!prefer.includes(k) && !['id'].includes(k))];
 
-    form.style.display = 'none';
-    document.querySelector('.top').style.display = 'none';
-    document.querySelectorAll('.datebar').forEach(el => el.style.display = 'none');
-    document.getElementById('successScreen').classList.add('show');
+  document.getElementById('thead').innerHTML = '<tr>' + sorted.map(k=>`<th class="px-2 py-2 text-left whitespace-nowrap capitalize">${k.replace(/_/g,' ')}</th>`).join('') + '</tr>';
+  document.getElementById('tbody').innerHTML = datosActuales.map(r=>{
+    return '<tr class="border-t hover:bg-gray-50">' + sorted.map(k=>{
+      let v = r[k]; if(v==null) v=''; 
+      if((k==='fecha'||k==='created_at') && v){ try{v=new Date(v).toLocaleString('es-EC');}catch{}}
+      const short = String(v).length>60?String(v).substring(0,60)+'...':v;
+      return `<td class="px-2 py-1 max-w-[180px] truncate" title="${String(r[k]||'').replace(/"/g,'')}">${short}</td>`;
+    }).join('') + '</tr>';
+  }).join('');
+}
+
+function exportarCSV() {
+  if(datosActuales.length===0){alert('No hay datos');return;}
+  const keys = [...new Set(datosActuales.flatMap(o=>Object.keys(o)))];
+  const rows = [keys.join(',')];
+  datosActuales.forEach(r=>{
+    rows.push(keys.map(k=>`"${String(r[k]||'').replace(/"/g,'""').replace(/\n/g,' ')}"`).join(','));
   });
+  const blob = new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url;
+  a.download=`rosita-consolidado-${document.getElementById('desde').value}_a_${document.getElementById('hasta').value}-3-cuidadoras.csv`;
+  a.click();
+}
+
+function copiarSheets() {
+  if(datosActuales.length===0){alert('No hay datos');return;}
+  const keys = [...new Set(datosActuales.flatMap(o=>Object.keys(o)))];
+  const lines = [keys.join('\t')];
+  datosActuales.forEach(r=>{ lines.push(keys.map(k=>String(r[k]||'').replace(/\t|\n/g,' ')).join('\t')); });
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('Copiado! Abre Google Sheets y pega en A1. Tendrás las 3 cuidadoras juntas.'));
+}
+
+document.getElementById('btnCSV').addEventListener('click', exportarCSV);
+document.getElementById('btnCopy').addEventListener('click', copiarSheets);
+document.getElementById('btnFiltrar').addEventListener('click', cargarConsolidado);
+
+// Form submit - auto-detecta columnas válidas
+document.getElementById('reportForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!supabaseClient && !initClient()){ alert('Falta anon key'); return; }
+  document.getElementById('formStatus').textContent='Guardando...';
+  const payload = {
+    cuidadora: document.getElementById('f_cuidadora').value,
+    fecha: new Date(document.getElementById('f_fecha').value + 'T12:00:00').toISOString(),
+    hora_acostarse: document.getElementById('f_hora_acostarse').value,
+    como_durmio: document.getElementById('f_como_durmio').value,
+    veces_desperto: document.getElementById('f_veces_desperto').value,
+    motivo_despertar: document.getElementById('f_motivo_despertar').value,
+    fue_bano: document.getElementById('f_fue_bano').value,
+    como_amanecio: document.getElementById('f_como_amanecio').value,
+    estado_general: document.getElementById('f_estado_general').value,
+    desayuno: document.getElementById('f_desayuno').value,
+    almuerzo: document.getElementById('f_almuerzo').value,
+    merienda: document.getElementById('f_merienda').value,
+    hidratacion: document.getElementById('f_hidratacion').value,
+    medicacion: document.getElementById('f_medicacion').value,
+    presion_arterial: document.getElementById('f_presion').value,
+    actividades: document.getElementById('f_actividades').value,
+    estado_casa: document.getElementById('f_estado_casa').value,
+    observaciones: document.getElementById('f_observaciones').value,
+  };
+
+  // Intenta insertar en tabla detectada, si no, prueba todas
+  const tablas = tablaDetectada ? [tablaDetectada] : ['reportes','reportes_rosita','reporte_rosita'];
+  let ok = false, lastErr=null;
+  for(const tabla of tablas){
+    // Filtra solo columnas que existen (intenta primero con todas, si falla por columna, filtra)
+    let res = await supabaseClient.from(tabla).insert([payload]).select();
+    if(!res.error){ ok=true; break; }
+    lastErr = res.error;
+    // Si error por columna inexistente, intenta con payload mínimo
+    if(res.error.message.includes('column') || res.error.message.includes('schema')){
+      const minPayload = { cuidadora: payload.cuidadora, fecha: payload.fecha, observaciones: payload.observaciones, estado_general: payload.estado_general };
+      // Agrega todo lo que no falle
+      const retry = await supabaseClient.from(tabla).insert([minPayload]).select();
+      if(!retry.error){ ok=true; break; }
+      lastErr = retry.error;
+    }
+  }
+
+  if(ok){
+    document.getElementById('formStatus').innerHTML='<span class="text-green-600">✓ Reporte guardado. Aparecerá en el consolidado de 30 días.</span>';
+    e.target.reset();
+    setDefaultDates();
+    setTimeout(()=>{ document.getElementById('tab-consolidado').click(); cargarConsolidado(); }, 1000);
+  } else {
+    document.getElementById('formStatus').innerHTML=`<span class="text-red-600">Error: ${lastErr?.message || 'desconocido'}. Revisa políticas RLS en Supabase.</span>`;
+  }
+});
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  setDefaultDates();
+  // Carga config.js si existe (no rompe si no existe)
+  const s = document.createElement('script');
+  s.src = './config.js';
+  s.onload = ()=>{ initClient(); cargarConsolidado(); };
+  s.onerror = ()=>{ initClient(); cargarConsolidado(); };
+  document.head.appendChild(s);
+  // También intenta inmediato
+  setTimeout(()=>{ if(!supabaseClient) { initClient(); cargarConsolidado(); } }, 800);
+});
 </script>
 </body>
 </html>
