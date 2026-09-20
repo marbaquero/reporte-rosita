@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consolidado 30 días - Rosita</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<script src="./config.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Reporte Consolidado - Rosita</h1>
+        <p class="text-gray-600 text-sm mt-1">Últimos 30 días • Todas las cuidadoras • Vista para Google Sheets</p>
+        <p id="rangoFechas" class="text-xs text-gray-500 mt-1"></p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <a href="./dashboard.html" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-100">← Historial completo</a>
+        <a href="./index.html" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-100">+ Nuevo reporte</a>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div id="summary" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <div class="text-xs text-gray-500 uppercase">Total reportes</div>
+        <div id="totalReportes" class="text-2xl font-bold mt-1">—</div>
+        <div id="totalDias" class="text-xs text-gray-500 mt-1"></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <div class="text-xs text-gray-500 uppercase">Por cuidadora</div>
+        <div id="porCuidadora" class="mt-2 space-y-1 text-sm"></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <div class="text-xs text-gray-500 uppercase">Estado general</div>
+        <div id="porEstado" class="mt-2 space-y-1 text-sm"></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border">
+        <div class="text-xs text-gray-500 uppercase">Acciones</div>
+        <div class="flex flex-col gap-2 mt-2">
+          <button id="btnCSV" class="w-full px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">⬇ Exportar CSV para Google Sheets</button>
+          <button id="btnSheets" class="w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">📊 Copiar para pegar en Sheets</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border mb-6 flex flex-col md:flex-row gap-3 items-start md:items-end">
+      <div>
+        <label class="text-xs text-gray-600">Desde</label>
+        <input type="date" id="desde" class="border rounded-lg px-3 py-2 text-sm w-full">
+      </div>
+      <div>
+        <label class="text-xs text-gray-600">Hasta</label>
+        <input type="date" id="hasta" class="border rounded-lg px-3 py-2 text-sm w-full">
+      </div>
+      <div class="flex-1">
+        <label class="text-xs text-gray-600">Tabla en Supabase (si cambiaste el nombre)</label>
+        <select id="tabla" class="border rounded-lg px-3 py-2 text-sm w-full">
+          <option value="reportes" selected>reportes</option>
+          <option value="reportes_rosita">reportes_rosita</option>
+          <option value="reportes_diarios">reportes_diarios</option>
+          <option value="reporte_rosita">reporte_rosita</option>
+        </select>
+      </div>
+      <button id="btnFiltrar" class="px-5 py-2 bg-gray-900 text-white rounded-lg text-sm hover:bg-black">Actualizar</button>
+    </div>
+
+    <!-- Status -->
+    <div id="status" class="text-sm text-gray-600 mb-4">Cargando reportes de los últimos 30 días...</div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="tablaReportes">
+          <thead class="bg-gray-100 text-xs uppercase text-gray-600">
+            <tr>
+              <th class="px-3 py-2 text-left">Fecha</th>
+              <th class="px-3 py-2 text-left">Cuidadora</th>
+              <th class="px-3 py-2 text-left">Estado general</th>
+              <th class="px-3 py-2 text-left">Desayuno</th>
+              <th class="px-3 py-2 text-left">Almuerzo</th>
+              <th class="px-3 py-2 text-left">Merienda</th>
+              <th class="px-3 py-2 text-left">Hidratación</th>
+              <th class="px-3 py-2 text-left">Medicación</th>
+              <th class="px-3 py-2 text-left">Presión arterial</th>
+              <th class="px-3 py-2 text-left">Actividades</th>
+              <th class="px-3 py-2 text-left">Estado casa</th>
+              <th class="px-3 py-2 text-left">Observaciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody" class="divide-y"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-6 text-xs text-gray-500">
+      <p><b>Cómo llevar a Google Sheets:</b> 1) Haz clic en "Exportar CSV" → se descarga un archivo. 2) Abre sheets.google.com → Archivo → Importar → Subir → selecciona el CSV. 3) Marca "Reemplazar hoja" y listo. Todos los reportes de Aracely, Ibeth y Carmita quedarán en una sola hoja de los últimos 30 días.</p>
+      <p class="mt-2">Este archivo usa el mismo <code>config.js</code> que <code>dashboard.html</code>, así que no necesitas configurar nada extra.</p>
+    </div>
+  </div>
+
+<script>
+const { createClient } = supabase;
+let supabaseClient;
+let datosActuales = [];
+
+function initClient() {
+  if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
+    document.getElementById('status').innerHTML = '<span class="text-red-600">No se encontró config.js. Asegúrate de que este archivo esté en la misma carpeta que config.js</span>';
+    return false;
+  }
+  supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return true;
+}
+
+function setDefaultDates() {
+  const hoy = new Date();
+  const hace30 = new Date();
+  hace30.setDate(hoy.getDate() - 30);
+  document.getElementById('desde').value = hace30.toISOString().split('T')[0];
+  document.getElementById('hasta').value = hoy.toISOString().split('T')[0];
+  document.getElementById('rangoFechas').textContent = `Rango: ${hace30.toLocaleDateString()} — ${hoy.toLocaleDateString()}`;
+}
+
+async function cargarDatos() {
+  const tabla = document.getElementById('tabla').value;
+  const desde = document.getElementById('desde').value;
+  const hasta = document.getElementById('hasta').value;
+  
+  const desdeISO = new Date(desde + 'T00:00:00').toISOString();
+  const hastaISO = new Date(hasta + 'T23:59:59').toISOString();
+
+  document.getElementById('status').textContent = `Consultando tabla "${tabla}" desde ${desde} hasta ${hasta}...`;
+
+  // Intenta con columna fecha, si no existe usa created_at
+  let data = null, error = null;
+  let intento = await supabaseClient.from(tabla).select('*').gte('fecha', desdeISO).lte('fecha', hastaISO).order('fecha', { ascending: false }).limit(1000);
+  
+  if (intento.error && intento.error.message.includes('column')) {
+    // fallback a created_at
+    intento = await supabaseClient.from(tabla).select('*').gte('created_at', desdeISO).lte('created_at', hastaISO).order('created_at', { ascending: false }).limit(1000);
+  }
+  
+  data = intento.data; error = intento.error;
+
+  if (error) {
+    document.getElementById('status').innerHTML = `<span class="text-red-600">Error: ${error.message}. Verifica que la tabla se llame "${tabla}" y que tenga columna fecha/created_at.</span>`;
+    console.error(error);
+    return;
+  }
+
+  datosActuales = data || [];
+  document.getElementById('status').textContent = `${datosActuales.length} reportes encontrados (todas las cuidadoras)`;
+  renderTabla();
+  renderResumen();
+}
+
+function getCampo(obj, ...keys) {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+  }
+  return '';
+}
+
+function renderResumen() {
+  document.getElementById('totalReportes').textContent = datosActuales.length;
+  const diasUnicos = new Set(datosActuales.map(r => (getCampo(r, 'fecha','created_at') || '').split('T')[0])).size;
+  document.getElementById('totalDias').textContent = `${diasUnicos} días con reportes`;
+
+  // Por cuidadora
+  const conteoCuidadora = {};
+  datosActuales.forEach(r => {
+    const c = getCampo(r, 'cuidadora','nombre_cuidadora','cuidador','author') || 'Sin nombre';
+    conteoCuidadora[c] = (conteoCuidadora[c] || 0) + 1;
+  });
+  const htmlCuidadora = Object.entries(conteoCuidadora).map(([nombre, count]) => {
+    const color = nombre.toLowerCase().includes('aracely') ? 'bg-purple-100 text-purple-800' : nombre.toLowerCase().includes('ibeth') ? 'bg-blue-100 text-blue-800' : nombre.toLowerCase().includes('carmita') ? 'bg-orange-100 text-orange-800' : 'bg-gray-100';
+    return `<div class="flex justify-between items-center"><span class="px-2 py-0.5 rounded-full text-xs ${color}">${nombre}</span><span class="font-bold">${count}</span></div>`;
+  }).join('') || '<span class="text-gray-400">Sin datos</span>';
+  document.getElementById('porCuidadora').innerHTML = htmlCuidadora;
+
+  // Por estado general
+  const conteoEstado = {};
+  datosActuales.forEach(r => {
+    const e = getCampo(r, 'estado_general','estado','estadoGeneral') || 'Sin registro';
+    conteoEstado[e] = (conteoEstado[e] || 0) + 1;
+  });
+  const htmlEstado = Object.entries(conteoEstado).map(([est, count]) => `<div class="flex justify-between"><span>${est}</span><span class="font-bold">${count}</span></div>`).join('') || '<span class="text-gray-400">Sin datos</span>';
+  document.getElementById('porEstado').innerHTML = htmlEstado;
+}
+
+function renderTabla() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  if (datosActuales.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="12" class="px-4 py-8 text-center text-gray-500">No hay reportes en este rango. Cambia las fechas o verifica que las cuidadoras hayan enviado reportes.</td></tr>';
+    return;
+  }
+
+  datosActuales.forEach(r => {
+    const fechaRaw = getCampo(r, 'fecha','created_at','fecha_reporte');
+    const fecha = fechaRaw ? new Date(fechaRaw).toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'short' }) : '';
+    const cuidadora = getCampo(r, 'cuidadora','nombre_cuidadora');
+    const estado = getCampo(r, 'estado_general','estado');
+    const desayuno = getCampo(r, 'desayuno');
+    const almuerzo = getCampo(r, 'almuerzo');
+    const merienda = getCampo(r, 'merienda');
+    const hidratacion = getCampo(r, 'hidratacion','hidratación');
+    const medicacion = getCampo(r, 'medicacion','medicación');
+    const presion = getCampo(r, 'presion_arterial','presion','presión_arterial');
+    const actividades = getCampo(r, 'actividades','actividades_del_dia');
+    const estadoCasa = getCampo(r, 'estado_casa','estadoCasa','casa');
+    const observaciones = getCampo(r, 'observaciones','observacion','notas');
+
+    const badgeColor = cuidadora.toLowerCase().includes('aracely') ? 'bg-purple-100 text-purple-800' : cuidadora.toLowerCase().includes('ibeth') ? 'bg-blue-100 text-blue-800' : cuidadora.toLowerCase().includes('carmita') ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800';
+
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-gray-50';
+    tr.innerHTML = `
+      <td class="px-3 py-2 whitespace-nowrap text-xs">${fecha}</td>
+      <td class="px-3 py-2"><span class="px-2 py-0.5 rounded-full text-xs ${badgeColor}">${cuidadora || '—'}</span></td>
+      <td class="px-3 py-2">${estado || '—'}</td>
+      <td class="px-3 py-2 max-w-[150px] truncate" title="${desayuno}">${desayuno || '—'}</td>
+      <td class="px-3 py-2 max-w-[150px] truncate" title="${almuerzo}">${almuerzo || '—'}</td>
+      <td class="px-3 py-2 max-w-[150px] truncate" title="${merienda}">${merienda || '—'}</td>
+      <td class="px-3 py-2">${hidratacion || '—'}</td>
+      <td class="px-3 py-2 max-w-[150px] truncate" title="${medicacion}">${medicacion || '—'}</td>
+      <td class="px-3 py-2 whitespace-nowrap">${presion || '—'}</td>
+      <td class="px-3 py-2 max-w-[150px] truncate" title="${actividades}">${actividades || '—'}</td>
+      <td class="px-3 py-2 max-w-[150px] truncate" title="${estadoCasa}">${estadoCasa || '—'}</td>
+      <td class="px-3 py-2 max-w-[200px] truncate" title="${observaciones}">${observaciones || '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function exportarCSV() {
+  if (datosActuales.length === 0) { alert('No hay datos para exportar'); return; }
+  const headers = ['fecha','cuidadora','estado_general','desayuno','almuerzo','merienda','hidratacion','medicacion','presion_arterial','actividades','estado_casa','observaciones'];
+  const rows = [headers.join(',')];
+  
+  datosActuales.forEach(r => {
+    const row = headers.map(h => {
+      const val = getCampo(r, h, h === 'hidratacion' ? 'hidratación' : h, h === 'medicacion' ? 'medicación' : h, h === 'presion_arterial' ? 'presión_arterial' : h, h === 'estado_casa' ? 'estadoCasa' : h);
+      // Escape CSV
+      const str = String(val || '').replace(/"/g, '""');
+      return `"${str}"`;
+    }).join(',');
+    rows.push(row);
+  });
+
+  const csvContent = rows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const desde = document.getElementById('desde').value;
+  const hasta = document.getElementById('hasta').value;
+  a.download = `rosita-consolidado-${desde}_a_${hasta}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copiarParaSheets() {
+  if (datosActuales.length === 0) { alert('No hay datos para copiar'); return; }
+  const headers = ['Fecha','Cuidadora','Estado general','Desayuno','Almuerzo','Merienda','Hidratación','Medicación','Presión arterial','Actividades','Estado casa','Observaciones'];
+  const lines = [headers.join('\t')];
+  datosActuales.forEach(r => {
+    const vals = [
+      getCampo(r, 'fecha','created_at'),
+      getCampo(r, 'cuidadora'),
+      getCampo(r, 'estado_general','estado'),
+      getCampo(r, 'desayuno'),
+      getCampo(r, 'almuerzo'),
+      getCampo(r, 'merienda'),
+      getCampo(r, 'hidratacion','hidratación'),
+      getCampo(r, 'medicacion','medicación'),
+      getCampo(r, 'presion_arterial','presión_arterial'),
+      getCampo(r, 'actividades'),
+      getCampo(r, 'estado_casa'),
+      getCampo(r, 'observaciones')
+    ].map(v => String(v || '').replace(/\t|\n/g, ' '));
+    lines.push(vals.join('\t'));
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    alert('Copiado al portapapeles. Ahora ve a Google Sheets y pega (Ctrl+V) en A1. Quedará con todas las cuidadoras separadas por columna.');
+  });
+}
+
+document.getElementById('btnCSV').addEventListener('click', exportarCSV);
+document.getElementById('btnSheets').addEventListener('click', copiarParaSheets);
+document.getElementById('btnFiltrar').addEventListener('click', cargarDatos);
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (!initClient()) return;
+  setDefaultDates();
+  cargarDatos();
+});
+</script>
+</body>
+</html>
