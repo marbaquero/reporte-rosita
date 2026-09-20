@@ -11,133 +11,120 @@
 <body class="bg-[#fbf7f2] min-h-screen">
 <div class="max-w-2xl mx-auto px-4 py-8">
   <div class="bg-white rounded-2xl shadow-sm border p-6 md:p-8">
-    <h1 class="text-2xl font-bold text-gray-900">Reporte diario — Rosita</h1>
-    <p class="text-sm text-gray-600 mt-1">Eligen su nombre (Aracely, Ibeth, Carmita) y pueden enviar varios reportes el mismo día.</p>
+    <h1 class="text-2xl font-bold">Reporte diario — Rosita</h1>
+    <p class="text-sm text-gray-600 mt-1">Cuidadoras: Aracely, Ibeth, Carmita — elige tu nombre</p>
 
     <form id="form" class="mt-6 space-y-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm font-medium">Cuidadora *</label>
-          <select id="cuidadora" required class="mt-1 w-full border rounded-xl px-3 py-2.5 text-sm bg-white">
-            <option value="">Selecciona tu nombre</option>
-            <option value="Aracely">Aracely</option>
-            <option value="Ibeth">Ibeth</option>
-            <option value="Carmita">Carmita</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm font-medium">Fecha y hora del reporte *</label>
-          <input type="datetime-local" id="fecha" required class="mt-1 w-full border rounded-xl px-3 py-2.5 text-sm">
-        </div>
+      <div>
+        <label class="text-sm font-bold">Cuidadora * — elige tu nombre</label>
+        <select id="cuidadora" required class="mt-2 w-full border-2 border-gray-900 rounded-xl px-4 py-4 text-base bg-white font-medium">
+          <option value="">— Selecciona tu nombre —</option>
+          <option value="Aracely">Aracely</option>
+          <option value="Ibeth">Ibeth</option>
+          <option value="Carmita">Carmita</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="text-sm font-medium">Fecha y hora del reporte *</label>
+        <input type="datetime-local" id="fecha" required class="mt-1 w-full border rounded-xl px-3 py-3 text-sm">
       </div>
 
-      <hr class="border-gray-100">
-
-      <div>
-        <h2 class="font-semibold text-gray-800">Noche</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+      <div class="border-t pt-6">
+        <h2 class="font-bold">Noche</h2>
+        <div class="grid grid-cols-1 gap-4 mt-3">
           <div>
             <label class="text-sm">Hora en que se acostó</label>
-            <input type="time" id="hora_acostarse" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm">
+            <input type="time" id="hora_acostarse" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm">
           </div>
           <div>
             <label class="text-sm">¿Cómo se durmió? *</label>
-            <select id="como_durmio" required class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
-              <option value="">—</option>
-              <option>Fácilmente</option>
-              <option>Con dificultad</option>
-              <option>Se resistió</option>
+            <select id="como_durmio" required class="mt-1 w-full border rounded-xl px-3 py-3 text-sm bg-white">
+              <option value="">— Elige —</option>
+              <option value="Fácilmente">Fácilmente</option>
+              <option value="Con dificultad">Con dificultad</option>
+              <option value="Se resistió">Se resistió</option>
             </select>
           </div>
           <div>
-            <label class="text-sm">Veces que se despertó en la noche *</label>
-            <select id="veces_desperto" required class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
-              <option value="">—</option>
-              <option>Ninguna</option>
-              <option>1-2 veces</option>
-              <option>3 o más</option>
+            <label class="text-sm">Veces que se despertó *</label>
+            <select id="veces_desperto" required class="mt-1 w-full border rounded-xl px-3 py-3 text-sm bg-white">
+              <option value="">— Elige —</option>
+              <option value="Ninguna">Ninguna</option>
+              <option value="1-2 veces">1-2 veces</option>
+              <option value="3 o más">3 o más</option>
             </select>
           </div>
           <div>
             <label class="text-sm">Motivo del despertar</label>
-            <select id="motivo_despertar" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
-              <option value="">—</option>
-              <option>Ir al baño</option>
-              <option>Dolor o malestar</option>
-              <option>Confusión o ansiedad</option>
-              <option>Sin motivo aparente</option>
+            <select id="motivo_despertar" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm bg-white">
+              <option value="">— Elige —</option>
+              <option value="Ir al baño">Ir al baño</option>
+              <option value="Dolor o malestar">Dolor o malestar</option>
+              <option value="Confusión o ansiedad">Confusión o ansiedad</option>
+              <option value="Sin motivo aparente">Sin motivo aparente</option>
             </select>
           </div>
           <div>
             <label class="text-sm">Fue al baño durante la noche *</label>
-            <select id="fue_bano" required class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
-              <option value="">—</option>
-              <option>No</option>
-              <option>Sí, sola</option>
-              <option>Sí, con ayuda</option>
+            <select id="fue_bano" required class="mt-1 w-full border rounded-xl px-3 py-3 text-sm bg-white">
+              <option value="">— Elige —</option>
+              <option value="No">No</option>
+              <option value="Sí, sola">Sí, sola</option>
+              <option value="Sí, con ayuda">Sí, con ayuda</option>
             </select>
           </div>
           <div>
             <label class="text-sm">¿Cómo amaneció? *</label>
-            <select id="como_amanecio" required class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
-              <option value="">—</option>
-              <option>Descansada</option>
-              <option>Cansada</option>
-              <option>Irritable</option>
-              <option>Confundida</option>
+            <select id="como_amanecio" required class="mt-1 w-full border rounded-xl px-3 py-3 text-sm bg-white">
+              <option value="">— Elige —</option>
+              <option value="Descansada">Descansada</option>
+              <option value="Cansada">Cansada</option>
+              <option value="Irritable">Irritable</option>
+              <option value="Confundida">Confundida</option>
             </select>
           </div>
         </div>
       </div>
 
-      <hr class="border-gray-100">
-
-      <div>
-        <h2 class="font-semibold text-gray-800">Día</h2>
-        <div class="space-y-4 mt-3">
+      <div class="border-t pt-6">
+        <h2 class="font-bold">Día</h2>
+        <div class="grid grid-cols-1 gap-4 mt-3">
           <div>
             <label class="text-sm">Estado general</label>
-            <select id="estado_general" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm bg-white">
-              <option value="">—</option>
-              <option>Excelente</option>
-              <option>Bien</option>
-              <option>Regular</option>
-              <option>Mal</option>
+            <select id="estado_general" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm bg-white">
+              <option value="">— Elige —</option>
+              <option value="Excelente">Excelente</option>
+              <option value="Bien">Bien</option>
+              <option value="Regular">Regular</option>
+              <option value="Mal">Mal</option>
             </select>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label class="text-sm">Desayuno</label><input id="desayuno" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></div>
-            <div><label class="text-sm">Almuerzo</label><input id="almuerzo" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></div>
-            <div><label class="text-sm">Merienda</label><input id="merienda" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label class="text-sm">Hidratación</label><input id="hidratacion" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></div>
-            <div><label class="text-sm">Medicación</label><input id="medicacion" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></div>
-          </div>
-          <div><label class="text-sm">Presión arterial</label><input id="presion_arterial" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm" placeholder="Ej: 120/80"></div>
-          <div><label class="text-sm">Actividades del día</label><textarea id="actividades" rows="2" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></textarea></div>
-          <div><label class="text-sm">Estado de la casa</label><textarea id="estado_casa" rows="2" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></textarea></div>
-          <div><label class="text-sm">Observaciones</label><textarea id="observaciones" rows="3" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></textarea></div>
+          <div><label class="text-sm">Desayuno</label><input id="desayuno" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm"></div>
+          <div><label class="text-sm">Almuerzo</label><input id="almuerzo" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm"></div>
+          <div><label class="text-sm">Merienda</label><input id="merienda" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm"></div>
+          <div><label class="text-sm">Hidratación</label><input id="hidratacion" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm"></div>
+          <div><label class="text-sm">Medicación</label><input id="medicacion" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm"></div>
+          <div><label class="text-sm">Presión arterial</label><input id="presion_arterial" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm" placeholder="120/80"></div>
+          <div><label class="text-sm">Actividades del día</label><textarea id="actividades" rows="3" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm"></textarea></div>
+          <div><label class="text-sm">Estado de la casa</label><textarea id="estado_casa" rows="3" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm"></textarea></div>
+          <div><label class="text-sm">Observaciones</label><textarea id="observaciones" rows="4" class="mt-1 w-full border rounded-xl px-3 py-3 text-sm"></textarea></div>
         </div>
       </div>
 
-      <button type="submit" id="btn" class="w-full py-3 bg-black text-white rounded-xl font-medium hover:bg-gray-900">Enviar reporte</button>
-      <p id="status" class="text-sm text-center"></p>
+      <button type="submit" id="btn" class="w-full py-4 bg-black text-white rounded-xl font-bold">Enviar reporte</button>
+      <p id="status" class="text-sm text-center font-medium"></p>
     </form>
   </div>
 </div>
-
 <script>
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 document.getElementById('fecha').value = new Date().toISOString().slice(0,16);
-
 document.getElementById('form').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  const btn = document.getElementById('btn');
-  const status = document.getElementById('status');
-  btn.disabled = true; btn.textContent = 'Enviando...'; status.textContent = '';
-
-  const payload = {
+  const btn=document.getElementById('btn'); const status=document.getElementById('status');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const payload={
     cuidadora: document.getElementById('cuidadora').value,
     fecha: new Date(document.getElementById('fecha').value).toISOString(),
     hora_acostarse: document.getElementById('hora_acostarse').value,
@@ -157,28 +144,9 @@ document.getElementById('form').addEventListener('submit', async (e)=>{
     estado_casa: document.getElementById('estado_casa').value,
     observaciones: document.getElementById('observaciones').value,
   };
-
-  const tablas = ['reportes','reportes_rosita','reporte_rosita','reportes_diarios'];
-  let ok=false, lastErr=null;
-  for(const tabla of tablas){
-    const { error } = await supabaseClient.from(tabla).insert([payload]);
-    if(!error){ ok=true; break; }
-    lastErr=error;
-    if(error.message.includes('column')){
-      const minPayload = { cuidadora: payload.cuidadora, fecha: payload.fecha, observaciones: payload.observaciones };
-      const retry = await supabaseClient.from(tabla).insert([minPayload]);
-      if(!retry.error){ ok=true; break; }
-      lastErr=retry.error;
-    }
-  }
-
-  if(ok){
-    status.innerHTML = '<span class="text-green-600">✓ Reporte enviado</span>';
-    e.target.reset();
-    document.getElementById('fecha').value = new Date().toISOString().slice(0,16);
-  } else {
-    status.innerHTML = `<span class="text-red-600">Error: ${lastErr?.message}</span>`;
-  }
+  const { error } = await supabaseClient.from('reportes').insert([payload]);
+  if(!error){ status.innerHTML='<span class="text-green-600">✓ Reporte enviado</span>'; e.target.reset(); document.getElementById('fecha').value=new Date().toISOString().slice(0,16); }
+  else{ status.innerHTML=`<span class="text-red-600">Error: ${error.message}</span>`; }
   btn.disabled=false; btn.textContent='Enviar reporte';
 });
 </script>
