@@ -210,6 +210,11 @@
     const d = new Date(iso + 'T12:00:00');
     return d.toLocaleDateString('es-EC', { day:'numeric', month:'long', year:'numeric' });
   }
+  const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  function diaDeSemana(iso){
+    const d = new Date(iso + 'T12:00:00');
+    return DIAS[d.getDay()];
+  }
   function arr(a){ return Array.isArray(a) ? a : []; }
 
   function render(rows){
@@ -312,7 +317,7 @@
         const newCuidadora = el.querySelector('.edit-cuidadora').value || null;
         if (!newFecha) { alert('La fecha no puede estar vacía.'); return; }
         const { error } = await sb.from('reportes_aracely')
-          .update({ fecha: newFecha, cuidadora: newCuidadora })
+          .update({ fecha: newFecha, cuidadora: newCuidadora, dia_turno: diaDeSemana(newFecha) })
           .eq('id', r.id);
         if (error) {
           alert('No se pudo guardar el cambio. Intenta de nuevo.');
