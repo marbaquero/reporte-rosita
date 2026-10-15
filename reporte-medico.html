@@ -290,7 +290,7 @@
   function renderResumen(){
     const { from, to } = currentRange();
     const total = CURRENT.length;
-    const nightEntries = CURRENT.filter(r => r.cuidadora === 'Ibeth');
+    const nightEntries = CURRENT.filter(r => r.cuidadora === 'Ibeth' || r.veces_desperto || r.como_durmio);
     const despertaresFrecuentes = nightEntries.filter(r => (r.veces_desperto || '').toLowerCase().includes('3')).length;
     const noQuisoComer = CURRENT.filter(r =>
       r.desayuno === 'No quiso' || r.almuerzo === 'No quiso' || r.merienda === 'No quiso'
@@ -302,7 +302,7 @@
       <div class="row-line"><span>Total de reportes</span><span class="v">${total}</span></div>
       <div class="row-line"><span>Reportes con dificultad de medicación</span><span class="v ${noQuisoComer ? 'warn':''}">${CURRENT.filter(r => arr(r.medicacion).some(m => m.toLowerCase().includes('dificultad'))).length}</span></div>
       <div class="row-line"><span>Días en que rechazó alguna comida</span><span class="v ${noQuisoComer ? 'warn':'good'}">${noQuisoComer}</span></div>
-      <div class="row-line"><span>Noches con 3 o más despertares (${nightEntries.length} reportes de Ibeth)</span><span class="v ${despertaresFrecuentes ? 'warn':'good'}">${despertaresFrecuentes}</span></div>
+      <div class="row-line"><span>Noches con 3 o más despertares (${nightEntries.length} reportes nocturnos)</span><span class="v ${despertaresFrecuentes ? 'warn':'good'}">${despertaresFrecuentes}</span></div>
       <div class="row-line"><span>Días que la casa requirió limpieza</span><span class="v">${casaRequirioLimpieza}</span></div>
     `;
 
@@ -325,12 +325,13 @@
     empty.style.display = CURRENT.length ? 'none' : 'block';
 
     for (const r of CURRENT) {
-      const esNoche = r.cuidadora === 'Ibeth';
+      const tieneNoche = r.cuidadora === 'Ibeth' || !!(r.como_durmio || r.veces_desperto || r.como_amanecio || r.hora_acostada);
+      const tieneDia = !tieneNoche || !!(r.desayuno || r.almuerzo || r.merienda || r.hidratacion);
       const dificultad = arr(r.medicacion).some(m => m.toLowerCase().includes('dificultad'));
-      const comidas = esNoche
-        ? '—'
-        : `Des: ${r.desayuno||'—'} · Alm: ${r.almuerzo||'—'} · Mer: ${r.merienda||'—'}`;
-      const sueno = esNoche
+      const comidas = tieneDia
+        ? `Des: ${r.desayuno||'—'} · Alm: ${r.almuerzo||'—'} · Mer: ${r.merienda||'—'}`
+        : '—';
+      const sueno = tieneNoche
         ? `${r.como_durmio||'—'} · ${r.veces_desperto||'—'} despertares · amaneció ${r.como_amanecio||'—'}`
         : '—';
       const medBadge = dificultad

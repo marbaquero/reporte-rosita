@@ -489,11 +489,19 @@
   const camposDia2 = document.getElementById('camposDia2');
   const camposNoche = document.getElementById('camposNoche');
 
+  // Turnos: Aracely = día, Ibeth = noche, Genesis = completo (día + noche, fines de semana con pernocta)
+  function turnoDe(nombre){
+    if (nombre === 'Ibeth') return 'noche';
+    if (nombre === 'Genesis') return 'completo';
+    return 'dia';
+  }
   function syncTurnoFields(){
-    const esNoche = cuidadoraSelect.value === 'Ibeth';
-    camposDia.style.display = esNoche ? 'none' : '';
-    camposDia2.style.display = esNoche ? 'none' : '';
-    camposNoche.style.display = esNoche ? '' : 'none';
+    const t = turnoDe(cuidadoraSelect.value);
+    const verDia = t !== 'noche';
+    const verNoche = t !== 'dia';
+    camposDia.style.display = verDia ? '' : 'none';
+    camposDia2.style.display = verDia ? '' : 'none';
+    camposNoche.style.display = verNoche ? '' : 'none';
   }
   cuidadoraSelect.addEventListener('change', () => {
     localStorage.setItem('cuidadora_reporte_rosita', cuidadoraSelect.value);
@@ -543,8 +551,10 @@
     statusEl.classList.remove('err');
 
     const cuidadora = document.getElementById('cuidadora').value;
-    const esNoche = cuidadora === 'Ibeth';
-    const desayuno = esNoche ? null : getRadio('desayuno');
+    const turno = turnoDe(cuidadora);
+    const hayDia = turno !== 'noche';
+    const hayNoche = turno !== 'dia';
+    const desayuno = hayDia ? getRadio('desayuno') : null;
     const estadoCasa = getChecked('estado_casa');
 
     if (!cuidadora) {
@@ -556,25 +566,25 @@
     let almuerzo = null, merienda = null, hidratacion = null;
     let comoDurmio = null, vecesDesperto = null, fueAlBanoNoche = null, comoAmanecio = null;
 
-    if (esNoche) {
+    let faltan = estadoCasa.length === 0;
+
+    if (hayNoche) {
       comoDurmio = getRadio('como_durmio');
       vecesDesperto = getRadio('veces_desperto');
       fueAlBanoNoche = getRadio('fue_al_bano_noche');
       comoAmanecio = getRadio('como_amanecio');
-      if (!comoDurmio || !vecesDesperto || !fueAlBanoNoche || !comoAmanecio || estadoCasa.length === 0) {
-        statusEl.textContent = 'Por favor completa todos los campos marcados con *.';
-        statusEl.classList.add('err');
-        return;
-      }
-    } else {
+      if (!comoDurmio || !vecesDesperto || !fueAlBanoNoche || !comoAmanecio) faltan = true;
+    }
+    if (hayDia) {
       almuerzo = getRadio('almuerzo');
       merienda = getRadio('merienda');
       hidratacion = getRadio('hidratacion');
-      if (!desayuno || !almuerzo || !merienda || !hidratacion || estadoCasa.length === 0) {
-        statusEl.textContent = 'Por favor completa todos los campos marcados con *.';
-        statusEl.classList.add('err');
-        return;
-      }
+      if (!desayuno || !almuerzo || !merienda || !hidratacion) faltan = true;
+    }
+    if (faltan) {
+      statusEl.textContent = 'Por favor completa todos los campos marcados con *.';
+      statusEl.classList.add('err');
+      return;
     }
 
     const payload = {
@@ -585,13 +595,13 @@
       desayuno, almuerzo, merienda, hidratacion,
       medicacion: getChecked('medicacion'),
       presion_arterial: document.getElementById('presion').value.trim() || null,
-      actividades: esNoche ? [] : getChecked('actividades'),
+      actividades: hayDia ? getChecked('actividades') : [],
       estado_casa: estadoCasa,
       observaciones: document.getElementById('observaciones').value.trim() || null,
-      hora_acostada: esNoche ? (document.getElementById('horaAcostada').value || null) : null,
+      hora_acostada: hayNoche ? (document.getElementById('horaAcostada').value || null) : null,
       como_durmio: comoDurmio,
       veces_desperto: vecesDesperto,
-      motivo_despertar: esNoche ? getChecked('motivo_despertar') : [],
+      motivo_despertar: hayNoche ? getChecked('motivo_despertar') : [],
       fue_al_bano_noche: fueAlBanoNoche,
       como_amanecio: comoAmanecio,
     };

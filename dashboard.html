@@ -231,7 +231,8 @@
 
       const el = document.createElement('div');
       el.className = 'entry' + (flagged ? ' flagged' : '');
-      const esNoche = r.cuidadora === 'Ibeth';
+      const tieneNoche = r.cuidadora === 'Ibeth' || !!(r.como_durmio || r.veces_desperto || r.como_amanecio || r.hora_acostada);
+      const tieneDia = !tieneNoche || !!(r.desayuno || r.almuerzo || r.merienda || r.hidratacion);
 
       const badges = [];
       if (r.cuidadora) badges.push(`<span class="badge" style="background:var(--card);border:1px solid var(--paper-line);color:var(--ink);">${r.cuidadora}</span>`);
@@ -239,29 +240,25 @@
       if (requirioLimpieza) badges.push('<span class="badge warn">Requirió limpieza</span>');
       if (r.presion_arterial) badges.push(`<span class="badge">${r.presion_arterial}</span>`);
 
-      const summaryLine = esNoche
-        ? `— Se durmió: ${r.como_durmio || '—'} · Despertares: ${r.veces_desperto || '—'} · Amaneció: ${r.como_amanecio || '—'}`
-        : `— Desayuno: ${r.desayuno || '—'} · Almuerzo: ${r.almuerzo || '—'} · Merienda: ${r.merienda || '—'}`;
+      const resumenDia = `Desayuno: ${r.desayuno || '—'} · Almuerzo: ${r.almuerzo || '—'} · Merienda: ${r.merienda || '—'}`;
+      const resumenNoche = `Se durmió: ${r.como_durmio || '—'} · Despertares: ${r.veces_desperto || '—'} · Amaneció: ${r.como_amanecio || '—'}`;
+      const summaryLine = '— ' + [tieneDia ? resumenDia : null, tieneNoche ? resumenNoche : null].filter(Boolean).join(' · ');
 
-      const detailRows = esNoche ? `
-            <div class="detail-row"><div class="k">Estado general</div><div class="v">${arr(r.estado_general).join(', ') || '—'}</div></div>
-            <div class="detail-row"><div class="k">Hora en que se acostó</div><div class="v">${r.hora_acostada || '—'}</div></div>
-            <div class="detail-row"><div class="k">Cómo se durmió</div><div class="v">${r.como_durmio || '—'}</div></div>
-            <div class="detail-row"><div class="k">Veces que se despertó</div><div class="v">${r.veces_desperto || '—'}</div></div>
-            <div class="detail-row"><div class="k">Motivo del despertar</div><div class="v">${arr(r.motivo_despertar).join(', ') || '—'}</div></div>
-            <div class="detail-row"><div class="k">Fue al baño en la noche</div><div class="v">${r.fue_al_bano_noche || '—'}</div></div>
-            <div class="detail-row"><div class="k">Cómo amaneció</div><div class="v">${r.como_amanecio || '—'}</div></div>
-            <div class="detail-row"><div class="k">Medicación</div><div class="v">${arr(r.medicacion).join(', ') || '—'}</div></div>
-            <div class="detail-row"><div class="k">Presión arterial</div><div class="v">${r.presion_arterial || '—'}</div></div>
-            <div class="detail-row"><div class="k">Estado de la casa</div><div class="v">${arr(r.estado_casa).join(', ') || '—'}</div></div>
-      ` : `
-            <div class="detail-row"><div class="k">Estado general</div><div class="v">${arr(r.estado_general).join(', ') || '—'}</div></div>
-            <div class="detail-row"><div class="k">Hidratación</div><div class="v">${r.hidratacion || '—'}</div></div>
-            <div class="detail-row"><div class="k">Medicación</div><div class="v">${arr(r.medicacion).join(', ') || '—'}</div></div>
-            <div class="detail-row"><div class="k">Presión arterial</div><div class="v">${r.presion_arterial || '—'}</div></div>
-            <div class="detail-row"><div class="k">Actividades</div><div class="v">${arr(r.actividades).join(', ') || '—'}</div></div>
-            <div class="detail-row"><div class="k">Estado de la casa</div><div class="v">${arr(r.estado_casa).join(', ') || '—'}</div></div>
-      `;
+      const row = (k, v) => `<div class="detail-row"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+      const detailRows = [
+        row('Estado general', arr(r.estado_general).join(', ') || '—'),
+        tieneDia ? row('Hidratación', r.hidratacion || '—') : '',
+        tieneNoche ? row('Hora en que se acostó', r.hora_acostada || '—') : '',
+        tieneNoche ? row('Cómo se durmió', r.como_durmio || '—') : '',
+        tieneNoche ? row('Veces que se despertó', r.veces_desperto || '—') : '',
+        tieneNoche ? row('Motivo del despertar', arr(r.motivo_despertar).join(', ') || '—') : '',
+        tieneNoche ? row('Fue al baño en la noche', r.fue_al_bano_noche || '—') : '',
+        tieneNoche ? row('Cómo amaneció', r.como_amanecio || '—') : '',
+        row('Medicación', arr(r.medicacion).join(', ') || '—'),
+        row('Presión arterial', r.presion_arterial || '—'),
+        tieneDia ? row('Actividades', arr(r.actividades).join(', ') || '—') : '',
+        row('Estado de la casa', arr(r.estado_casa).join(', ') || '—'),
+      ].join('\n');
 
       el.innerHTML = `
         <div class="entry-head">
