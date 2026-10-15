@@ -306,10 +306,10 @@
       <div class="row-line"><span>Días que la casa requirió limpieza</span><span class="v">${casaRequirioLimpieza}</span></div>
     `;
 
-    const porCuidadora = ['Aracely','Ibeth','Carmita'].map(nombre => {
+    const porCuidadora = ['Aracely','Ibeth','Genesis','Carmita'].map(nombre => {
       const rows = CURRENT.filter(r => r.cuidadora === nombre);
       return { nombre, n: rows.length };
-    });
+    }).filter(c => c.nombre !== 'Carmita' || c.n > 0);
     document.getElementById('cuidadoraGrid').innerHTML = porCuidadora.map(c => `
       <div class="cuidadora-card">
         <div class="name">${c.nombre}</div>
