@@ -8,6 +8,7 @@ Dos páginas:
 
 - `index.html` — el formulario que Aracely llena cada turno
 - `dashboard.html` — el historial, con búsqueda, filtro por fecha y exportar a CSV
+- `sesion-cognitiva.html` — registro corto de cada sesión de estimulación cognitiva (formulario + historial). Requiere correr `migracion-sesiones.sql` una vez en Supabase
 
 ## 1. Base de datos (Supabase)
 

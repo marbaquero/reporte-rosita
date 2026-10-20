@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Sesión cognitiva — Rosita</title>
+<link rel="apple-touch-icon" href="icono-reporte-rosita.png">
+<link rel="icon" type="image/png" href="icono-reporte-rosita.png">
+<meta name="apple-mobile-web-app-title" content="Sesión">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF6EE; --paper-line:#E7DFCC; --ink:#2B2620; --ink-soft:#6B6355;
+    --sage:#5C7255; --sage-deep:#3F5638; --sage-tint:#EAF0E6;
+    --brick:#B85138; --brick-soft:#F3E4DE; --card:#FFFFFF;
+    --shadow:0 1px 2px rgba(43,38,32,0.06), 0 8px 24px rgba(43,38,32,0.05);
+    --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:'Work Sans',sans-serif; line-height:1.45; padding-bottom:80px; }
+
+  .top{ padding:34px 20px 14px; max-width:620px; margin:0 auto; }
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--sage-deep); display:flex; align-items:center; gap:8px; }
+  .eyebrow::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--sage); display:inline-block; }
+  h1{ font-family:'Fraunces',serif; font-weight:600; font-size:clamp(28px,7vw,38px); margin:6px 0 4px; letter-spacing:-.01em; }
+  h1 em{ font-style:italic; font-weight:500; color:var(--sage-deep); }
+  .sub{ color:var(--ink-soft); font-size:14.5px; max-width:46ch; }
+  .sub a{ color:var(--sage-deep); }
+
+  .tabs{ max-width:620px; margin:10px auto 0; padding:0 20px; display:flex; gap:8px; }
+  .tab{ flex:1; width:auto; font-family:'Work Sans',sans-serif; font-weight:600; font-size:14px; padding:11px 8px; border-radius:10px; border:1.5px solid var(--paper-line); background:var(--card); color:var(--ink); cursor:pointer; box-shadow:none; }
+  .tab.on{ background:var(--sage-deep); border-color:var(--sage-deep); color:#fff; }
+
+  .datebar{ max-width:620px; margin:16px auto 0; padding:0 20px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .datebar label{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .datebar input, .datebar select{ font-family:'Work Sans',sans-serif; font-size:15px; border:1px solid var(--paper-line); background:var(--card); border-radius:10px; padding:9px 11px; color:var(--ink); }
+  .datebar input{ flex:1; min-width:120px; }
+  .datebar select{ flex:1; min-width:120px; }
+
+  form{ max-width:620px; margin:20px auto 0; padding:0 20px; display:flex; flex-direction:column; gap:16px; }
+  fieldset{ border:1px solid var(--paper-line); background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 18px 16px; margin:0; }
+  legend{ font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; padding:0 4px; display:flex; align-items:baseline; gap:6px; }
+  legend .req{ color:var(--brick); font-size:13px; }
+  legend .opt{ color:var(--ink-soft); font-weight:400; font-size:12.5px; font-family:'Work Sans',sans-serif; }
+  .hint{ font-size:13px; color:var(--ink-soft); margin:-2px 0 12px; }
+
+  .opts{ display:flex; flex-direction:column; gap:2px; }
+  .opt-row{ display:flex; align-items:center; gap:12px; padding:11px 8px; border-radius:10px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .opt-row:active{ background:#F3EEE0; }
+  .opt-row input[type="checkbox"]{ width:20px; height:20px; flex-shrink:0; accent-color:var(--sage-deep); }
+  .opt-row span{ font-size:15px; }
+
+  .grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .grid4{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .pill{ display:flex; align-items:center; justify-content:center; text-align:center; padding:12px 6px; border-radius:10px; border:1.5px solid var(--paper-line); font-size:14px; cursor:pointer; background:var(--paper); transition:border-color .12s, background .12s; }
+  .pill input{ display:none; }
+  .pill:has(input:checked){ border-color:var(--sage-deep); background:var(--sage-tint); color:var(--sage-deep); font-weight:600; }
+  .pill.warn:has(input:checked){ border-color:var(--brick); background:var(--brick-soft); color:var(--brick); }
+
+  textarea, input[type="text"], input[type="time"]{ width:100%; font-family:'Work Sans',sans-serif; font-size:15px; border:1.5px solid var(--paper-line); border-radius:10px; padding:11px 12px; background:var(--paper); color:var(--ink); resize:vertical; }
+  textarea{ min-height:80px; }
+  textarea:focus, input:focus, .opt-row:has(input:focus-visible){ outline:2px solid var(--sage); outline-offset:1px; }
+
+  .note{ font-size:13px; color:var(--brick); background:var(--brick-soft); border-radius:8px; padding:8px 10px; margin-top:8px; display:none; }
+  .note.show{ display:block; }
+
+  .submitbar{ max-width:620px; margin:4px auto 0; padding:0 20px; }
+  button.send{ width:100%; font-family:'Fraunces',serif; font-weight:600; font-size:17px; color:#fff; background:var(--sage-deep); border:none; border-radius:12px; padding:16px; cursor:pointer; box-shadow:var(--shadow); transition:transform .08s, background .15s; }
+  button.send:active{ transform:scale(.985); }
+  button.send:disabled{ background:#B9BBA9; cursor:default; }
+
+  .status{ max-width:620px; margin:12px auto 0; padding:0 20px; font-size:14px; text-align:center; color:var(--sage-deep); min-height:20px; }
+  .status.err{ color:var(--brick); }
+
+  .success-screen{ display:none; max-width:620px; margin:60px auto; padding:0 24px; text-align:center; }
+  .success-screen.show{ display:block; }
+  .success-screen .mark{ width:56px; height:56px; border-radius:50%; background:var(--sage-deep); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:26px; }
+  .success-screen h2{ font-family:'Fraunces',serif; font-size:26px; margin:0 0 8px; }
+  .success-screen p{ color:var(--ink-soft); font-size:15px; }
+  .success-screen button{ margin-top:20px; width:100%; background:transparent; border:1.5px solid var(--paper-line); color:var(--ink); border-radius:12px; padding:14px; font-family:'Fraunces',serif; font-weight:600; font-size:16px; cursor:pointer; }
+
+  /* Historial */
+  .hist{ display:none; }
+  .hist.show{ display:block; }
+  .stats{ max-width:620px; margin:18px auto 0; padding:0 20px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .stat{ background:var(--card); border:1px solid var(--paper-line); border-radius:12px; padding:12px 14px; box-shadow:var(--shadow); }
+  .stat .n{ font-family:'Fraunces',serif; font-size:22px; font-weight:600; }
+  .stat .l{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
+  .controls{ max-width:620px; margin:16px auto 0; padding:0 20px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .controls input[type="date"]{ font-family:'Work Sans',sans-serif; font-size:14px; border:1.5px solid var(--paper-line); background:var(--card); border-radius:10px; padding:9px 10px; color:var(--ink); flex:1; min-width:130px; }
+  .controls button{ width:auto; font-family:'Work Sans',sans-serif; font-weight:600; font-size:13.5px; border:1.5px solid var(--paper-line); background:var(--card); color:var(--ink); border-radius:10px; padding:9px 12px; cursor:pointer; box-shadow:none; }
+  .controls button.primary{ background:var(--sage-deep); border-color:var(--sage-deep); color:#fff; }
+  .controls button.active{ background:var(--brick); border-color:var(--brick); color:#fff; }
+  .list{ max-width:620px; margin:16px auto 0; padding:0 20px; display:flex; flex-direction:column; gap:10px; }
+  .entry{ background:var(--card); border:1px solid var(--paper-line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; cursor:pointer; }
+  .entry.flagged{ border-left:4px solid var(--brick); }
+  .entry .head{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap; }
+  .entry .date{ font-family:'Fraunces',serif; font-weight:600; font-size:16px; }
+  .entry .who{ font-size:13px; color:var(--ink-soft); }
+  .badges{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .badge{ font-size:12px; padding:3px 9px; border-radius:20px; background:var(--sage-tint); color:var(--sage-deep); }
+  .badge.warn{ background:var(--brick-soft); color:var(--brick); }
+  .summary{ font-size:13.5px; color:var(--ink-soft); margin-top:8px; }
+  .detail{ display:none; margin-top:12px; border-top:1px solid var(--paper-line); padding-top:10px; }
+  .entry.open .detail{ display:block; }
+  .detail-row{ display:flex; gap:10px; padding:5px 0; font-size:14px; }
+  .detail-row .k{ width:130px; flex-shrink:0; color:var(--ink-soft); font-size:12.5px; }
+  .detail-row .v{ flex:1; white-space:pre-wrap; }
+  .delete-btn{ display:none; margin-top:10px; background:var(--brick-soft); color:var(--brick); border:1px solid var(--brick); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:600; cursor:pointer; width:auto; box-shadow:none; font-family:'Work Sans',sans-serif; }
+  body.admin-mode .delete-btn{ display:inline-block; }
+  .empty{ max-width:620px; margin:30px auto; padding:0 20px; text-align:center; color:var(--ink-soft); font-size:14.5px; display:none; }
+
+  footer{ max-width:620px; margin:30px auto 0; padding:0 20px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); letter-spacing:.03em; }
+  footer a{ color:var(--sage-deep); }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="eyebrow">Estimulación cognitiva</div>
+  <h1>Sesión de <em>Rosita</em></h1>
+  <p class="sub">Un registro corto después de cada sesión. <a href="./index.html">Ir al reporte diario →</a></p>
+</div>
+
+<div class="tabs">
+  <button type="button" class="tab on" id="tabNueva">Nueva sesión</button>
+  <button type="button" class="tab" id="tabHist">Historial</button>
+</div>
+
+<!-- ======== NUEVA SESIÓN ======== -->
+<div id="vistaNueva">
+  <div class="datebar">
+    <label for="cuidadora">Cuidadora</label>
+    <select id="cuidadora">
+      <option>Genesis</option>
+      <option>Aracely</option>
+      <option>Ibeth</option>
+    </select>
+  </div>
+  <div class="datebar">
+    <label for="fecha">Fecha</label>
+    <input type="date" id="fecha" required>
+    <span id="diaLabel" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);"></span>
+  </div>
+
+  <form id="sesionForm" novalidate>
+
+    <fieldset>
+      <legend>Hora de inicio <span class="opt">(opcional)</span></legend>
+      <input type="time" id="horaInicio" value="10:00">
+    </fieldset>
+
+    <fieldset>
+      <legend>Duración <span class="req">*</span></legend>
+      <div class="grid4" data-radio="duracion">
+        <label class="pill"><input type="radio" name="duracion" value="30 min"><span>30 min</span></label>
+        <label class="pill"><input type="radio" name="duracion" value="45 min"><span>45 min</span></label>
+        <label class="pill"><input type="radio" name="duracion" value="1 hora" checked><span>1 hora</span></label>
+        <label class="pill"><input type="radio" name="duracion" value="Más de 1 hora"><span>Más</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>¿Qué hicieron? <span class="req">*</span></legend>
+      <p class="hint">Marque todo lo que hicieron hoy.</p>
+      <div class="opts" data-group="actividades">
+        <label class="opt-row"><input type="checkbox" value="Memoria / fotos"><span>Memoria / fotos</span></label>
+        <label class="opt-row"><input type="checkbox" value="Colores y números"><span>Colores y números</span></label>
+        <label class="opt-row"><input type="checkbox" value="Motricidad fina"><span>Motricidad fina (pelotitas, clasificar)</span></label>
+        <label class="opt-row"><input type="checkbox" value="Rompecabezas"><span>Rompecabezas</span></label>
+        <label class="opt-row"><input type="checkbox" value="Música"><span>Música</span></label>
+        <label class="opt-row"><input type="checkbox" value="Conversación"><span>Conversación</span></label>
+        <label class="opt-row"><input type="checkbox" value="Tejido o crochet"><span>Tejido o crochet</span></label>
+        <label class="opt-row"><input type="checkbox" value="Doblar ropa o paños"><span>Doblar ropa o paños</span></label>
+        <label class="opt-row"><input type="checkbox" value="Paseo / aire libre"><span>Paseo / aire libre</span></label>
+        <label class="opt-row"><input type="checkbox" value="Masaje suave"><span>Masaje suave</span></label>
+        <label class="opt-row"><input type="checkbox" value="Otra" id="otraChk"><span>Otra</span></label>
+      </div>
+      <input type="text" id="otraActividad" placeholder="¿Cuál otra actividad?" style="display:none; margin-top:8px;" autocomplete="off">
+    </fieldset>
+
+    <fieldset>
+      <legend>Ánimo de la Sra. Rosita <span class="req">*</span></legend>
+      <div class="grid3" data-radio="animo">
+        <label class="pill"><input type="radio" name="animo" value="Bien"><span>😊 Bien</span></label>
+        <label class="pill"><input type="radio" name="animo" value="Normal"><span>😐 Normal</span></label>
+        <label class="pill warn"><input type="radio" name="animo" value="Decaída"><span>😟 Decaída</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>¿Cuánto participó? <span class="req">*</span></legend>
+      <div class="grid3" data-radio="participacion">
+        <label class="pill"><input type="radio" name="participacion" value="Mucho"><span>Mucho</span></label>
+        <label class="pill"><input type="radio" name="participacion" value="Regular"><span>Regular</span></label>
+        <label class="pill"><input type="radio" name="participacion" value="Poco"><span>Poco</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Manos <span class="req">*</span></legend>
+      <div class="grid3" data-radio="manos">
+        <label class="pill"><input type="radio" name="manos" value="Sin dolor"><span>Sin dolor</span></label>
+        <label class="pill warn"><input type="radio" name="manos" value="Algo de molestia"><span>Algo de molestia</span></label>
+        <label class="pill warn"><input type="radio" name="manos" value="Dolor (paré)"><span>Dolor (paré)</span></label>
+      </div>
+      <div class="note" id="manosNote">Gracias por avisar. Cuéntenos en la nota de abajo qué pasó.</div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Lo más lindo o importante de hoy <span class="opt">(opcional)</span></legend>
+      <textarea id="nota" placeholder="Una frase o dos..."></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>Materiales que faltan <span class="opt">(opcional)</span></legend>
+      <input type="text" id="materiales" placeholder="Ej. lana gruesa, tarjetas con imágenes" autocomplete="off">
+    </fieldset>
+
+    <p class="hint" style="margin:0;">Las fotos y videos siga enviándolos por WhatsApp.</p>
+
+    <div class="submitbar" style="padding:0;width:100%;">
+      <button type="submit" class="send" id="submitBtn">Enviar sesión</button>
+    </div>
+    <div class="status" id="status" style="padding:0;"></div>
+  </form>
+
+  <div class="success-screen" id="successScreen">
+    <div class="mark">✓</div>
+    <h2>Sesión registrada</h2>
+    <p>Gracias — quedó guardada la sesión de hoy.</p>
+    <button type="button" onclick="location.reload()">Registrar otra sesión</button>
+  </div>
+</div>
+
+<!-- ======== HISTORIAL ======== -->
+<div class="hist" id="vistaHist">
+  <div class="stats" id="stats"></div>
+  <div class="controls">
+    <input type="date" id="from" aria-label="Desde">
+    <input type="date" id="to" aria-label="Hasta">
+    <button type="button" id="clearFilters">Limpiar</button>
+    <button type="button" id="exportCsv" class="primary">Exportar CSV</button>
+    <button type="button" id="adminToggle">Modo administrador</button>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="empty" id="empty">Todavía no hay sesiones que coincidan.</div>
+</div>
+
+<footer>sesión cognitiva · rosita</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const arr = a => Array.isArray(a) ? a : [];
+
+  /* ---------- Pestañas ---------- */
+  const tabNueva = document.getElementById('tabNueva');
+  const tabHist = document.getElementById('tabHist');
+  const vistaNueva = document.getElementById('vistaNueva');
+  const vistaHist = document.getElementById('vistaHist');
+  function showTab(h){
+    tabNueva.classList.toggle('on', !h);
+    tabHist.classList.toggle('on', h);
+    vistaNueva.style.display = h ? 'none' : '';
+    vistaHist.classList.toggle('show', h);
+    if (h) loadHist();
+  }
+  tabNueva.addEventListener('click', () => showTab(false));
+  tabHist.addEventListener('click', () => showTab(true));
+
+  /* ---------- Formulario ---------- */
+  const cuidadoraSelect = document.getElementById('cuidadora');
+  const saved = localStorage.getItem('cuidadora_reporte_rosita');
+  if (saved && Array.from(cuidadoraSelect.options).some(o => o.value === saved)) cuidadoraSelect.value = saved;
+  cuidadoraSelect.addEventListener('change', () => localStorage.setItem('cuidadora_reporte_rosita', cuidadoraSelect.value));
+
+  const fechaInput = document.getElementById('fecha');
+  const diaLabel = document.getElementById('diaLabel');
+  function todayLocal(){
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
+  }
+  fechaInput.value = todayLocal();
+  function syncDia(){ diaLabel.textContent = DIAS[new Date(fechaInput.value + 'T12:00:00').getDay()] || ''; }
+  fechaInput.addEventListener('change', syncDia);
+  syncDia();
+
+  const otraChk = document.getElementById('otraChk');
+  const otraInput = document.getElementById('otraActividad');
+  otraChk.addEventListener('change', () => { otraInput.style.display = otraChk.checked ? '' : 'none'; if (otraChk.checked) otraInput.focus(); });
+
+  const manosNote = document.getElementById('manosNote');
+  document.querySelectorAll('input[name="manos"]').forEach(r => r.addEventListener('change', () => {
+    const v = document.querySelector('input[name="manos"]:checked')?.value;
+    manosNote.classList.toggle('show', v && v !== 'Sin dolor');
+  }));
+
+  const getChecked = g => Array.from(document.querySelectorAll(`[data-group="${g}"] input:checked`)).map(i => i.value);
+  const getRadio = n => document.querySelector(`input[name="${n}"]:checked`)?.value || null;
+
+  const form = document.getElementById('sesionForm');
+  const statusEl = document.getElementById('status');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.textContent = ''; statusEl.classList.remove('err');
+
+    const actividades = getChecked('actividades');
+    const duracion = getRadio('duracion');
+    const animo = getRadio('animo');
+    const participacion = getRadio('participacion');
+    const manos = getRadio('manos');
+
+    if (!actividades.length || !duracion || !animo || !participacion || !manos) {
+      statusEl.textContent = 'Por favor complete los campos marcados con *.';
+      statusEl.classList.add('err');
+      return;
+    }
+
+    const payload = {
+      cuidadora: cuidadoraSelect.value,
+      fecha: fechaInput.value,
+      hora_inicio: document.getElementById('horaInicio').value || null,
+      duracion,
+      actividades,
+      otra_actividad: otraChk.checked ? (otraInput.value.trim() || null) : null,
+      animo, participacion, manos,
+      nota: document.getElementById('nota').value.trim() || null,
+      materiales: document.getElementById('materiales').value.trim() || null,
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+    const { error } = await sb.from('sesiones_cognitivas').insert(payload);
+    if (error) {
+      statusEl.textContent = 'No se pudo enviar. Revise su conexión e intente de nuevo.';
+      statusEl.classList.add('err');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar sesión';
+      console.error(error);
+      return;
+    }
+    form.style.display = 'none';
+    document.querySelectorAll('.datebar').forEach(el => el.style.display = 'none');
+    document.getElementById('successScreen').classList.add('show');
+  });
+
+  /* ---------- Historial ---------- */
+  let ALL = [];
+  const fmtDate = iso => {
+    const [y,m,d] = String(iso).split('-');
+    return `${DIAS[new Date(iso + 'T12:00:00').getDay()]} ${d}/${m}/${y}`;
+  };
+
+  function render(rows){
+    const list = document.getElementById('list');
+    const empty = document.getElementById('empty');
+    list.innerHTML = '';
+    empty.style.display = rows.length ? 'none' : 'block';
+    for (const r of rows) {
+      const flagged = r.manos && r.manos !== 'Sin dolor';
+      const acts = arr(r.actividades).filter(a => !(a === 'Otra' && r.otra_actividad)).concat(r.otra_actividad ? [`Otra: ${r.otra_actividad}`] : []);
+      const el = document.createElement('div');
+      el.className = 'entry' + (flagged ? ' flagged' : '');
+      const badges = [
+        r.cuidadora ? `<span class="badge" style="background:var(--card);border:1px solid var(--paper-line);color:var(--ink);">${esc(r.cuidadora)}</span>` : '',
+        r.animo ? `<span class="badge${r.animo === 'Decaída' ? ' warn' : ''}">Ánimo: ${esc(r.animo)}</span>` : '',
+        r.participacion ? `<span class="badge${r.participacion === 'Poco' ? ' warn' : ''}">Participó: ${esc(r.participacion)}</span>` : '',
+        flagged ? `<span class="badge warn">Manos: ${esc(r.manos)}</span>` : '',
+      ].join('');
+      const row = (k,v) => `<div class="detail-row"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+      el.innerHTML = `
+        <div class="head"><div class="date">${fmtDate(r.fecha)}</div><div class="who">${esc(r.hora_inicio || '')} ${r.duracion ? '· ' + esc(r.duracion) : ''}</div></div>
+        <div class="badges">${badges}</div>
+        <div class="summary">${esc(acts.slice(0,3).join(', '))}${acts.length > 3 ? ' +' + (acts.length - 3) : ''}</div>
+        <div class="detail">
+          ${row('Actividades', esc(acts.join(', ') || '—'))}
+          ${row('Manos', esc(r.manos || '—'))}
+          ${row('Lo más importante', esc(r.nota || '—'))}
+          ${row('Materiales que faltan', esc(r.materiales || '—'))}
+          <button type="button" class="delete-btn">Eliminar esta sesión</button>
+        </div>`;
+      el.addEventListener('click', () => el.classList.toggle('open'));
+      el.querySelector('.delete-btn').addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        if (!confirm('¿Eliminar esta sesión? No se puede deshacer.')) return;
+        const { error } = await sb.from('sesiones_cognitivas').delete().eq('id', r.id);
+        if (error) { alert('No se pudo eliminar.'); console.error(error); return; }
+        ALL = ALL.filter(x => x.id !== r.id);
+        applyFilters();
+      });
+      list.appendChild(el);
+    }
+  }
+
+  function renderStats(rows){
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const hace7 = new Date(hoy); hace7.setDate(hace7.getDate() - 6);
+    const semana = rows.filter(r => new Date(r.fecha + 'T12:00:00') >= hace7).length;
+    const mucho = rows.filter(r => r.participacion === 'Mucho').length;
+    const pct = rows.length ? Math.round(mucho / rows.length * 100) : 0;
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="n">${rows.length}</div><div class="l">Sesiones</div></div>
+      <div class="stat"><div class="n">${semana}</div><div class="l">Últimos 7 días</div></div>
+      <div class="stat"><div class="n">${pct}%</div><div class="l">Participó mucho</div></div>`;
+  }
+
+  function applyFilters(){
+    const from = document.getElementById('from').value;
+    const to = document.getElementById('to').value;
+    const rows = ALL.filter(r => (!from || r.fecha >= from) && (!to || r.fecha <= to));
+    render(rows);
+    renderStats(rows);
+  }
+  document.getElementById('from').addEventListener('change', applyFilters);
+  document.getElementById('to').addEventListener('change', applyFilters);
+  document.getElementById('clearFilters').addEventListener('click', () => {
+    document.getElementById('from').value = '';
+    document.getElementById('to').value = '';
+    applyFilters();
+  });
+
+  const adminBtn = document.getElementById('adminToggle');
+  function setAdminUI(on){
+    document.body.classList.toggle('admin-mode', on);
+    adminBtn.classList.toggle('active', on);
+    adminBtn.textContent = on ? 'Salir de modo administrador' : 'Modo administrador';
+  }
+  adminBtn.addEventListener('click', () => {
+    if (document.body.classList.contains('admin-mode')) {
+      setAdminUI(false);
+      sessionStorage.removeItem('reporte_rosita_admin');
+      return;
+    }
+    const pin = prompt('PIN de administrador:');
+    if (pin === null) return;
+    if (pin === ADMIN_PIN) { setAdminUI(true); sessionStorage.setItem('reporte_rosita_admin', '1'); }
+    else alert('PIN incorrecto.');
+  });
+  if (sessionStorage.getItem('reporte_rosita_admin') === '1') setAdminUI(true);
+
+  document.getElementById('exportCsv').addEventListener('click', () => {
+    const cols = ['fecha','cuidadora','hora_inicio','duracion','actividades','otra_actividad','animo','participacion','manos','nota','materiales'];
+    const csv = [cols.join(',')].concat(ALL.map(r => cols.map(c => {
+      let v = r[c];
+      if (Array.isArray(v)) v = v.join('; ');
+      v = (v ?? '').toString().replace(/"/g, '""');
+      return `"${v}"`;
+    }).join(','))).join('\n');
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `sesiones-cognitivas-${todayLocal()}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  async function loadHist(){
+    const { data, error } = await sb.from('sesiones_cognitivas').select('*').order('fecha', { ascending:false }).order('created_at', { ascending:false });
+    const empty = document.getElementById('empty');
+    if (error) {
+      empty.style.display = 'block';
+      empty.textContent = 'No se pudo cargar el historial. Revise la conexión (¿ya se creó la tabla en Supabase?).';
+      console.error(error);
+      return;
+    }
+    empty.textContent = 'Todavía no hay sesiones que coincidan.';
+    ALL = data;
+    applyFilters();
+  }
+
+  if (location.hash === '#historial') showTab(true);
+</script>
+</body>
+</html>
