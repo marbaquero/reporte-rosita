@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Reporte diario — Rosita</title>
+<title>Reporte diario</title>
 <link rel="apple-touch-icon" href="icono-reporte-rosita.png">
 <link rel="icon" type="image/png" href="icono-reporte-rosita.png">
-<meta name="apple-mobile-web-app-title" content="Rosita">
+<meta name="apple-mobile-web-app-title" content="Reporte diario">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -299,18 +299,23 @@
 
 <div class="top">
   <div class="eyebrow">Cuidado diario</div>
-  <h1>Reporte de <em>Rosita</em></h1>
+  <h1>Reporte de <em id="recipientTitle">tu familiar</em></h1>
   <p class="sub">Un registro rápido del turno — cómo estuvo, cómo comió y cómo pasó el día.</p>
-  <p class="sub" style="margin-top:6px;">¿Hizo una sesión de estimulación? <a href="./sesion-cognitiva.html" style="color:var(--sage-deep);font-weight:600;">Registrar sesión cognitiva →</a></p>
+  <p class="sub" style="margin-top:6px;">¿Hizo una sesión de estimulación? <a id="cognitiveLink" href="./sesion-cognitiva.html" style="color:var(--sage-deep);font-weight:600;">Registrar sesión cognitiva →</a></p>
 </div>
 
 <div class="datebar" style="flex-wrap:wrap;">
   <label for="cuidadora">Cuidadora</label>
   <select id="cuidadora" required style="flex:1; min-width:120px;">
     <option value="" disabled selected>Elegir...</option>
-    <option>Aracely</option>
-    <option>Ibeth</option>
-    <option>Genesis</option>
+  </select>
+</div>
+<div class="datebar">
+  <label for="turno">Turno</label>
+  <select id="turno" required>
+    <option value="dia" selected>Día</option>
+    <option value="noche">Noche</option>
+    <option value="completo">Día y noche</option>
   </select>
 </div>
 <div class="datebar">
@@ -322,7 +327,7 @@
 <form id="reportForm" novalidate>
 
   <fieldset>
-    <legend>Estado general de la Sra. Rosita</legend>
+    <legend>Estado general de <span id="recipientLegend">tu familiar</span></legend>
     <div class="opts" data-group="estado_general">
       <label class="opt-row"><input type="checkbox" value="Tranquila y de buen humor"><span>Tranquila y de buen humor</span></label>
       <label class="opt-row"><input type="checkbox" value="Conversadora / sociable"><span>Conversadora / sociable</span></label>
@@ -474,11 +479,11 @@
 <div class="success-screen" id="successScreen">
   <div class="mark">✓</div>
   <h2>Reporte enviado</h2>
-  <p>Gracias — quedó registrado el reporte de hoy para Rosita.</p>
+  <p>Gracias — quedó registrado el reporte de hoy para <span id="recipientSuccess">tu familiar</span>.</p>
   <button type="button" onclick="location.reload()">Enviar otro reporte</button>
 </div>
 
-<footer>reporte diario · rosita</footer>
+<footer>reporte diario del hogar</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
@@ -486,6 +491,48 @@
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const cuidadoraSelect = document.getElementById('cuidadora');
+  const token = new URLSearchParams(location.search).get('t') || '';
+  let invalidToken = !token;
+  let caregiver = null;
+  let caregiverReady = false;
+  const caregiverBar = cuidadoraSelect.closest('.datebar');
+  if (caregiverBar) caregiverBar.style.display = 'none';
+
+  if (token) loadCaregiver();
+
+  async function loadCaregiver() {
+    const { data, error } = await sb.rpc('caregiver_context', { p_token: token });
+    if (error || !data || data.error) {
+      invalidToken = true;
+      showInvalidToken();
+      return;
+    }
+    caregiver = data;
+    caregiverReady = true;
+    const recipient = data.care_recipient_name || 'tu familiar';
+    ['recipientTitle','recipientLegend','recipientSuccess'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = recipient;
+    });
+    document.title = `Reporte diario — ${recipient}`;
+    const cognitiveLink = document.getElementById('cognitiveLink');
+    if (cognitiveLink) cognitiveLink.href = './sesion-cognitiva.html?t=' + encodeURIComponent(token);
+    cuidadoraSelect.innerHTML = '';
+    const option = document.createElement('option');
+    option.value = data.caregiver_name;
+    option.textContent = data.caregiver_name;
+    cuidadoraSelect.appendChild(option);
+    cuidadoraSelect.value = data.caregiver_name;
+    syncTurnoFields();
+  }
+
+  function showInvalidToken() {
+    const main = document.querySelector('main');
+    if (main) {
+      main.innerHTML = '<section style="padding:60px 0;text-align:center"><h1>Este enlace no funciona</h1><p class="sub">Pida a la familia un enlace nuevo.</p></section>';
+    }
+  }
+
   const savedCuidadora = localStorage.getItem('cuidadora_reporte_rosita');
   if (savedCuidadora) cuidadoraSelect.value = savedCuidadora;
 
@@ -493,23 +540,23 @@
   const camposDia2 = document.getElementById('camposDia2');
   const camposNoche = document.getElementById('camposNoche');
 
-  // Turnos: Aracely = día, Ibeth = noche, Genesis = completo (día + noche, fines de semana con pernocta)
-  function turnoDe(nombre){
-    if (nombre === 'Ibeth') return 'noche';
-    if (nombre === 'Genesis') return 'completo';
-    return 'dia';
+  // The shift is chosen by the caregiver on each report. It is not inferred
+  // from a person's name, so the app works for any household.
+  const turnoSelect = document.getElementById('turno');
+  function turnoDe(){
+    return turnoSelect.value || 'dia';
   }
   function syncTurnoFields(){
-    const t = turnoDe(cuidadoraSelect.value);
+    const t = turnoDe();
     const verDia = t !== 'noche';
     const verNoche = t !== 'dia';
     camposDia.style.display = verDia ? '' : 'none';
     camposDia2.style.display = verDia ? '' : 'none';
     camposNoche.style.display = verNoche ? '' : 'none';
   }
+  turnoSelect.addEventListener('change', syncTurnoFields);
   cuidadoraSelect.addEventListener('change', () => {
     localStorage.setItem('cuidadora_reporte_rosita', cuidadoraSelect.value);
-    syncTurnoFields();
   });
   syncTurnoFields();
 
@@ -554,8 +601,13 @@
     statusEl.textContent = '';
     statusEl.classList.remove('err');
 
-    const cuidadora = document.getElementById('cuidadora').value;
-    const turno = turnoDe(cuidadora);
+    if (invalidToken || !caregiverReady) {
+      statusEl.textContent = 'Este enlace no es válido. Pida uno nuevo.';
+      statusEl.classList.add('err');
+      return;
+    }
+    const cuidadora = caregiver?.caregiver_name || cuidadoraSelect.value;
+    const turno = turnoDe();
     const hayDia = turno !== 'noche';
     const hayNoche = turno !== 'dia';
     const desayuno = hayDia ? getRadio('desayuno') : null;
@@ -593,7 +645,7 @@
 
     const payload = {
       cuidadora,
-      fecha: fechaInput.value,
+      report_date: fechaInput.value,
       dia_turno: DIAS[new Date(fechaInput.value + 'T12:00:00').getDay()],
       estado_general: getChecked('estado_general'),
       desayuno, almuerzo, merienda, hidratacion,
@@ -613,14 +665,18 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando...';
 
-    const { error } = await sb.from('reportes_aracely').insert(payload);
+    const { data: result, error } = await sb.rpc('submit_care_report', {
+      p_token: token,
+      p_payload: payload,
+      p_client_id: (crypto.randomUUID ? crypto.randomUUID() : null),
+    });
 
-    if (error) {
+    if (error || !result || result.error) {
       statusEl.textContent = 'No se pudo enviar. Revisa tu conexión e intenta de nuevo.';
       statusEl.classList.add('err');
       submitBtn.disabled = false;
       submitBtn.textContent = 'Enviar reporte';
-      console.error(error);
+      console.error(error || result);
       return;
     }
 
@@ -629,6 +685,7 @@
     document.querySelectorAll('.datebar').forEach(el => el.style.display = 'none');
     document.getElementById('successScreen').classList.add('show');
   });
+  if (invalidToken) showInvalidToken();
 </script>
 </body>
 </html>
