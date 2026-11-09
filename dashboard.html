@@ -222,9 +222,7 @@
 
   async function initOwner(){
     const { data: { session }, error } = await sb.auth.getSession();
-    if (error || !session) {
-      location.replace('https://marbaquero.github.io/portal.html');
-      return null;
+    
     }
     const { data: member, error: memberError } = await sb
       .from('household_members')
