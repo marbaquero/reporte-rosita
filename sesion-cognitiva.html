@@ -441,7 +441,7 @@
       sessionStorage.removeItem('reporte_rosita_admin');
       return;
     }
-    const pin = prompt('PIN de administrador:');
+    const pin = ADMIN_PIN;
     if (pin === null) return;
     if (pin === ADMIN_PIN) { setAdminUI(true); sessionStorage.setItem('reporte_rosita_admin', '1'); }
     else alert('PIN incorrecto.');
