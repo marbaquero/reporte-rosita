@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Historial — Reportes</title>
+<title>Historial — Reporte de Rosita</title>
 <link rel="apple-touch-icon" href="icono-dashboard-rosita.png">
 <link rel="icon" type="image/png" href="icono-dashboard-rosita.png">
 <meta name="apple-mobile-web-app-title" content="Historial">
@@ -177,13 +177,8 @@
 
 <div class="top">
   <div class="eyebrow">Historial</div>
-  <h1>Reportes de <em id="recipientName" style="font-style:italic;color:var(--sage-deep);">tu familiar</em></h1>
+  <h1>Reportes de <em style="font-style:italic;color:var(--sage-deep);">Rosita</em></h1>
   <p class="sub">Todos los reportes enviados desde el formulario. <a href="./index.html">+ nuevo reporte</a> · <a href="./sesion-cognitiva.html#historial">Sesiones cognitivas →</a></p>
-  <div id="profileSetup" style="display:none; max-width:900px; margin:14px auto 0; padding:14px 16px; background:var(--paper); border-radius:10px; display:none; align-items:center; gap:10px; flex-wrap:wrap;">
-    <label for="recipientInput" style="font-size:13px; font-weight:600; color:var(--ink);">¿Cómo se llama tu familiar?</label>
-    <input id="recipientInput" type="text" maxlength="60" placeholder="Ej. María" style="padding:8px 10px; border:1px solid var(--paper-line); border-radius:8px; font-size:14px; min-width:180px;">
-    <button id="saveRecipient" style="padding:8px 14px; border:0; border-radius:8px; background:var(--sage-deep); color:#fff; font-size:13px; font-weight:600; cursor:pointer;">Guardar</button>
-  </div>
 </div>
 
 <div class="stats" id="stats"></div>
@@ -191,6 +186,10 @@
 <div class="controls">
   <select id="cuidadoraFilter">
     <option value="">Todas las cuidadoras</option>
+    <option>Aracely</option>
+    <option>Ibeth</option>
+    <option>Genesis</option>
+    <option>Carmita</option>
   </select>
   <input type="text" id="search" placeholder="Buscar en observaciones...">
   <input type="date" id="from">
@@ -203,104 +202,13 @@
 <div class="list" id="list"></div>
 <div class="empty" id="empty" style="display:none;">Todavía no hay reportes que coincidan.</div>
 
-<footer>historial de reportes · <a href="./index.html">nuevo reporte</a></footer>
+<footer>reporte diario · rosita</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
 <script>
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let ALL = [];
-  let HOUSEHOLD_ID = null;
-
-  function mapRow(r){
-    return {
-      ...r,
-      fecha: r.report_date,
-      cuidadora: r.caregiver_name
-    };
-  }
-
-  async function initOwner(){
-    const { data: { session }, error } = await sb.auth.getSession();
-    if (error || !session) {
-      location.replace('https://marbaquero.github.io/portal.html');
-      return null;
-    }
-    const { data: member, error: memberError } = await sb
-      .from('household_members')
-      .select('household_id, role')
-      .eq('user_id', session.user.id)
-      .eq('role', 'owner')
-      .limit(1)
-      .maybeSingle();
-    if (memberError || !member) {
-      document.getElementById('list').innerHTML = '';
-      document.getElementById('empty').style.display = 'block';
-      document.getElementById('empty').textContent = 'Esta cuenta no está vinculada a un hogar. Inicie sesión desde el portal.';
-      return null;
-    }
-    HOUSEHOLD_ID = member.household_id;
-    await loadRecipientName();
-    return session;
-  }
-
-  let PROFILE = {};
-
-  async function loadRecipientName(){
-    const { data } = await sb.from('app_kv_store')
-      .select('value')
-      .eq('household_id', HOUSEHOLD_ID)
-      .eq('key', 'profile')
-      .maybeSingle();
-    PROFILE = (data && data.value) || {};
-    const name = PROFILE.care_recipient;
-    if (name) {
-      document.getElementById('recipientName').textContent = name;
-    } else {
-      const setup = document.getElementById('profileSetup');
-      setup.style.display = 'flex';
-      document.getElementById('recipientInput').focus();
-    }
-  }
-
-  async function saveRecipientName(){
-    const input = document.getElementById('recipientInput');
-    const name = input.value.trim();
-    if (!name) { input.focus(); return; }
-    const btn = document.getElementById('saveRecipient');
-    btn.disabled = true;
-    btn.textContent = 'Guardando…';
-    PROFILE = { ...PROFILE, care_recipient: name };
-    const { error } = await sb.from('app_kv_store').upsert({
-      household_id: HOUSEHOLD_ID,
-      key: 'profile',
-      value: PROFILE,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'household_id,key' });
-    btn.disabled = false;
-    btn.textContent = 'Guardar';
-    if (error) {
-      console.error(error);
-      btn.textContent = 'No se pudo guardar';
-      return;
-    }
-    document.getElementById('recipientName').textContent = name;
-    document.getElementById('profileSetup').style.display = 'none';
-  }
-
-  function renderCaregiverOptions(){
-    const sel = document.getElementById('cuidadoraFilter');
-    const current = sel.value;
-    const names = [...new Set(ALL.map(r => r.cuidadora).filter(Boolean))].sort();
-    sel.innerHTML = '<option value="">Todas las cuidadoras</option>' +
-      names.map(n => `<option>${n}</option>`).join('');
-    sel.value = current;
-  }
-
-  document.getElementById('saveRecipient').addEventListener('click', saveRecipientName);
-  document.getElementById('recipientInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') saveRecipientName();
-  });
 
   function fmtDate(iso){
     const d = new Date(iso + 'T12:00:00');
@@ -326,7 +234,7 @@
 
       const el = document.createElement('div');
       el.className = 'entry' + (flagged ? ' flagged' : '');
-      const tieneNoche = !!(r.como_durmio || r.veces_desperto || r.como_amanecio || r.hora_acostada);
+      const tieneNoche = r.cuidadora === 'Ibeth' || !!(r.como_durmio || r.veces_desperto || r.como_amanecio || r.hora_acostada);
       const tieneDia = !tieneNoche || !!(r.desayuno || r.almuerzo || r.merienda || r.hidratacion);
 
       const badges = [];
@@ -381,9 +289,10 @@
                 <label>Cuidadora</label>
                 <select class="edit-cuidadora">
                   <option value="" ${!r.cuidadora ? 'selected' : ''}>—</option>
-                  ${[...new Set(ALL.map(x => x.cuidadora).filter(Boolean))].map(n =>
-                    `<option ${n === r.cuidadora ? 'selected' : ''}>${n}</option>`
-                  ).join('')}
+                  <option ${r.cuidadora === 'Aracely' ? 'selected' : ''}>Aracely</option>
+                  <option ${r.cuidadora === 'Ibeth' ? 'selected' : ''}>Ibeth</option>
+                  <option ${r.cuidadora === 'Genesis' ? 'selected' : ''}>Genesis</option>
+                  <option ${r.cuidadora === 'Carmita' ? 'selected' : ''}>Carmita</option>
                 </select>
               </div>
             </div>
@@ -409,8 +318,8 @@
         const newFecha = el.querySelector('.edit-fecha').value;
         const newCuidadora = el.querySelector('.edit-cuidadora').value || null;
         if (!newFecha) { alert('La fecha no puede estar vacía.'); return; }
-        const { error } = await sb.from('care_reports')
-          .update({ report_date: newFecha, caregiver_name: newCuidadora, dia_turno: diaDeSemana(newFecha) })
+        const { error } = await sb.from('reportes_aracely')
+          .update({ fecha: newFecha, cuidadora: newCuidadora, dia_turno: diaDeSemana(newFecha) })
           .eq('id', r.id);
         if (error) {
           alert('No se pudo guardar el cambio. Intenta de nuevo.');
@@ -422,7 +331,7 @@
       el.querySelector('.delete-btn').addEventListener('click', async (e) => {
         e.stopPropagation();
         if (!confirm(`¿Eliminar el reporte de ${fmtDate(r.fecha)}${r.cuidadora ? ' (' + r.cuidadora + ')' : ''}? Esto no se puede deshacer.`)) return;
-        const { error } = await sb.from('care_reports').delete().eq('id', r.id);
+        const { error } = await sb.from('reportes_aracely').delete().eq('id', r.id);
         if (error) {
           alert('No se pudo eliminar. Intenta de nuevo.');
           console.error(error);
@@ -473,10 +382,28 @@
     applyFilters();
   });
 
-  // The owner is authenticated by Supabase. Editing is enabled by that session;
-  // the old client-side PIN was not a security boundary.
-  document.body.classList.add('admin-mode');
-  document.getElementById('adminToggle').style.display = 'none';
+  const adminBtn = document.getElementById('adminToggle');
+  function setAdminUI(on){
+    document.body.classList.toggle('admin-mode', on);
+    adminBtn.classList.toggle('active', on);
+    adminBtn.textContent = on ? 'Salir de modo administrador' : 'Modo administrador';
+  }
+  adminBtn.addEventListener('click', () => {
+    if (document.body.classList.contains('admin-mode')) {
+      setAdminUI(false);
+      sessionStorage.removeItem('reporte_rosita_admin');
+      return;
+    }
+    const pin = prompt('PIN de administrador:');
+    if (pin === null) return;
+    if (pin === ADMIN_PIN) {
+      setAdminUI(true);
+      sessionStorage.setItem('reporte_rosita_admin', '1');
+    } else {
+      alert('PIN incorrecto.');
+    }
+  });
+  if (sessionStorage.getItem('reporte_rosita_admin') === '1') setAdminUI(true);
 
   document.getElementById('exportCsv').addEventListener('click', () => {
     const cols = ['fecha','cuidadora','dia_turno','estado_general','desayuno','almuerzo','merienda','hidratacion','hora_acostada','como_durmio','veces_desperto','motivo_despertar','fue_al_bano_noche','como_amanecio','medicacion','presion_arterial','actividades','estado_casa','observaciones'];
@@ -491,7 +418,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `reportes-${todayStr()}.csv`;
+    a.download = `reportes-rosita-${todayStr()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   });
@@ -502,23 +429,18 @@
   }
 
   async function load(){
-    const { data, error } = await sb.from('care_reports')
-      .select('*')
-      .order('report_date', { ascending:false })
-      .order('created_at', { ascending:false });
+    const { data, error } = await sb.from('reportes_aracely').select('*').order('fecha', { ascending:false }).order('created_at', { ascending:false });
     if (error) {
       document.getElementById('empty').style.display = 'block';
       document.getElementById('empty').textContent = 'No se pudo cargar el historial. Revisa la conexión.';
       console.error(error);
       return;
     }
-    ALL = (data || []).map(mapRow);
-    renderCaregiverOptions();
+    ALL = data;
     render(ALL);
     renderStats(ALL);
   }
-
-  initOwner().then((session) => { if (session) load(); });
+  load();
 </script>
 </body>
 </html>

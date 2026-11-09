@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Sesión cognitiva</title>
+<title>Sesión cognitiva — Rosita</title>
 <link rel="apple-touch-icon" href="icono-reporte-rosita.png">
 <link rel="icon" type="image/png" href="icono-reporte-rosita.png">
 <meta name="apple-mobile-web-app-title" content="Sesión">
@@ -121,8 +121,8 @@
 
 <div class="top">
   <div class="eyebrow">Estimulación cognitiva</div>
-  <h1>Sesión de <em id="recipientTitle">tu familiar</em></h1>
-  <p class="sub">Un registro corto después de cada sesión. <a id="dailyLink" href="./index.html">Ir al reporte diario →</a></p>
+  <h1>Sesión de <em>Rosita</em></h1>
+  <p class="sub">Un registro corto después de cada sesión. <a href="./index.html">Ir al reporte diario →</a></p>
 </div>
 
 <div class="tabs">
@@ -134,7 +134,11 @@
 <div id="vistaNueva">
   <div class="datebar">
     <label for="cuidadora">Cuidadora</label>
-    <select id="cuidadora"></select>
+    <select id="cuidadora">
+      <option>Genesis</option>
+      <option>Aracely</option>
+      <option>Ibeth</option>
+    </select>
   </div>
   <div class="datebar">
     <label for="fecha">Fecha</label>
@@ -179,7 +183,7 @@
     </fieldset>
 
     <fieldset>
-      <legend>Ánimo de <span id="recipientLegend">tu familiar</span> <span class="req">*</span></legend>
+      <legend>Ánimo de la Sra. Rosita <span class="req">*</span></legend>
       <div class="grid3" data-radio="animo">
         <label class="pill"><input type="radio" name="animo" value="Bien"><span>😊 Bien</span></label>
         <label class="pill"><input type="radio" name="animo" value="Normal"><span>😐 Normal</span></label>
@@ -246,7 +250,7 @@
   <div class="empty" id="empty">Todavía no hay sesiones que coincidan.</div>
 </div>
 
-<footer>sesión cognitiva del hogar</footer>
+<footer>sesión cognitiva · rosita</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
@@ -273,50 +277,6 @@
 
   /* ---------- Formulario ---------- */
   const cuidadoraSelect = document.getElementById('cuidadora');
-  const token = new URLSearchParams(location.search).get('t') || '';
-  let invalidToken = !token;
-  let caregiver = null;
-  let caregiverReady = false;
-  const caregiverBar = cuidadoraSelect.closest('.datebar');
-  if (caregiverBar) caregiverBar.style.display = 'none';
-  if (tabHist) tabHist.style.display = 'none';
-  if (tabNueva) tabNueva.style.display = 'none';
-  showTab(false);
-
-  if (token) loadCaregiver();
-
-  async function loadCaregiver() {
-    const { data, error } = await sb.rpc('caregiver_context', { p_token: token });
-    if (error || !data || data.error) {
-      invalidToken = true;
-      showInvalidToken();
-      return;
-    }
-    caregiver = data;
-    caregiverReady = true;
-    const recipient = data.care_recipient_name || 'tu familiar';
-    ['recipientTitle','recipientLegend'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = recipient;
-    });
-    document.title = `Sesión cognitiva — ${recipient}`;
-    const dailyLink = document.getElementById('dailyLink');
-    if (dailyLink) dailyLink.href = './index.html?t=' + encodeURIComponent(token);
-    cuidadoraSelect.innerHTML = '';
-    const option = document.createElement('option');
-    option.value = data.caregiver_name;
-    option.textContent = data.caregiver_name;
-    cuidadoraSelect.appendChild(option);
-    cuidadoraSelect.value = data.caregiver_name;
-  }
-
-  function showInvalidToken() {
-    const main = document.querySelector('main');
-    if (main) {
-      main.innerHTML = '<section style="padding:60px 0;text-align:center"><h1>Este enlace no funciona</h1><p class="sub">Pida a la familia un enlace nuevo.</p></section>';
-    }
-  }
-
   const saved = localStorage.getItem('cuidadora_reporte_rosita');
   if (saved && Array.from(cuidadoraSelect.options).some(o => o.value === saved)) cuidadoraSelect.value = saved;
   cuidadoraSelect.addEventListener('change', () => localStorage.setItem('cuidadora_reporte_rosita', cuidadoraSelect.value));
@@ -354,11 +314,6 @@
     e.preventDefault();
     statusEl.textContent = ''; statusEl.classList.remove('err');
 
-    if (invalidToken || !caregiverReady) {
-      statusEl.textContent = 'Este enlace no es válido. Pida uno nuevo.';
-      statusEl.classList.add('err');
-      return;
-    }
     const actividades = getChecked('actividades');
     const duracion = getRadio('duracion');
     const animo = getRadio('animo');
@@ -373,7 +328,7 @@
 
     const payload = {
       cuidadora: cuidadoraSelect.value,
-      session_date: fechaInput.value,
+      fecha: fechaInput.value,
       hora_inicio: document.getElementById('horaInicio').value || null,
       duracion,
       actividades,
@@ -385,17 +340,13 @@
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando...';
-    const { data: result, error } = await sb.rpc('submit_cognitive_session', {
-      p_token: token,
-      p_payload: payload,
-      p_client_id: (crypto.randomUUID ? crypto.randomUUID() : null),
-    });
-    if (error || !result || result.error) {
+    const { error } = await sb.from('sesiones_cognitivas').insert(payload);
+    if (error) {
       statusEl.textContent = 'No se pudo enviar. Revise su conexión e intente de nuevo.';
       statusEl.classList.add('err');
       submitBtn.disabled = false;
       submitBtn.textContent = 'Enviar sesión';
-      console.error(error || result);
+      console.error(error);
       return;
     }
     form.style.display = 'none';
@@ -478,9 +429,24 @@
     applyFilters();
   });
 
-  // The caregiver history is read-only. Deletion is not available from a
-  // caregiver link; the owner manages records from the owner apps.
-  document.getElementById('adminToggle').style.display = 'none';
+  const adminBtn = document.getElementById('adminToggle');
+  function setAdminUI(on){
+    document.body.classList.toggle('admin-mode', on);
+    adminBtn.classList.toggle('active', on);
+    adminBtn.textContent = on ? 'Salir de modo administrador' : 'Modo administrador';
+  }
+  adminBtn.addEventListener('click', () => {
+    if (document.body.classList.contains('admin-mode')) {
+      setAdminUI(false);
+      sessionStorage.removeItem('reporte_rosita_admin');
+      return;
+    }
+    const pin = prompt('PIN de administrador:');
+    if (pin === null) return;
+    if (pin === ADMIN_PIN) { setAdminUI(true); sessionStorage.setItem('reporte_rosita_admin', '1'); }
+    else alert('PIN incorrecto.');
+  });
+  if (sessionStorage.getItem('reporte_rosita_admin') === '1') setAdminUI(true);
 
   document.getElementById('exportCsv').addEventListener('click', () => {
     const cols = ['fecha','cuidadora','hora_inicio','duracion','actividades','otra_actividad','animo','participacion','manos','nota','materiales'];
@@ -512,7 +478,6 @@
   }
 
   if (location.hash === '#historial') showTab(true);
-  if (invalidToken) showInvalidToken();
 </script>
 </body>
 </html>
