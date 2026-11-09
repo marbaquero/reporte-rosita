@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reporte médico</title>
+<title>Reporte médico — Rosita</title>
 <link rel="apple-touch-icon" href="icono-reporte-medico.png">
 <link rel="icon" type="image/png" href="icono-reporte-medico.png">
 <meta name="apple-mobile-web-app-title" content="Médico">
@@ -158,8 +158,8 @@
 
 <div class="top">
   <div class="eyebrow">Para el médico</div>
-  <h1>Reporte de <em id="recipientName" style="font-style:italic;color:var(--sage-deep);">tu familiar</em></h1>
-  <p class="sub">Resumen consolidado de las cuidadoras del hogar, listo para descargar en PDF. <a href="./dashboard.html">← ver historial completo</a></p>
+  <h1>Reporte de <em style="font-style:italic;color:var(--sage-deep);">Rosita</em></h1>
+  <p class="sub">Resumen consolidado de las tres cuidadoras, listo para descargar en PDF. <a href="./dashboard.html">← ver historial completo</a></p>
   <p class="print-header" id="printHeader"></p>
 </div>
 
@@ -213,7 +213,7 @@
   </div>
 </div>
 
-<footer>reporte médico · <a href="./dashboard.html">historial</a> · <a href="./index.html">nuevo reporte</a></footer>
+<footer>reporte diario · rosita · <a href="./dashboard.html">historial</a> · <a href="./index.html">nuevo reporte</a></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
@@ -221,38 +221,6 @@
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let ALL = [];
   let CURRENT = [];
-  let HOUSEHOLD_ID = null;
-
-  function mapRow(r){
-    return { ...r, fecha: r.report_date, cuidadora: r.caregiver_name };
-  }
-
-  async function initOwner(){
-    const { data: { session }, error } = await sb.auth.getSession();
-    
-    }
-    const { data: member, error: memberError } = await sb
-      .from('household_members')
-      .select('household_id, role')
-      .eq('user_id', session.user.id)
-      .eq('role', 'owner')
-      .limit(1)
-      .maybeSingle();
-    if (memberError || !member) {
-      document.getElementById('empty').style.display = 'block';
-      document.getElementById('empty').textContent = 'Esta cuenta no está vinculada a un hogar. Inicie sesión desde el portal.';
-      return null;
-    }
-    HOUSEHOLD_ID = member.household_id;
-    const { data: profile } = await sb.from('app_kv_store')
-      .select('value')
-      .eq('household_id', HOUSEHOLD_ID)
-      .eq('key', 'profile')
-      .maybeSingle();
-    const name = profile && profile.value && profile.value.care_recipient;
-    if (name) document.getElementById('recipientName').textContent = name;
-    return session;
-  }
 
   function arr(a){ return Array.isArray(a) ? a : []; }
   function fmtDate(iso){
@@ -325,7 +293,7 @@
   function renderResumen(){
     const { from, to } = currentRange();
     const total = CURRENT.length;
-    const nightEntries = CURRENT.filter(r => r.veces_desperto || r.como_durmio || r.como_amanecio);
+    const nightEntries = CURRENT.filter(r => r.cuidadora === 'Ibeth' || r.veces_desperto || r.como_durmio);
     const despertaresFrecuentes = nightEntries.filter(r => (r.veces_desperto || '').toLowerCase().includes('3')).length;
     const noQuisoComer = CURRENT.filter(r =>
       r.desayuno === 'No quiso' || r.almuerzo === 'No quiso' || r.merienda === 'No quiso'
@@ -341,12 +309,10 @@
       <div class="row-line"><span>Días que la casa requirió limpieza</span><span class="v">${casaRequirioLimpieza}</span></div>
     `;
 
-    const porCuidadora = [...new Set(CURRENT.map(r => r.cuidadora).filter(Boolean))]
-      .sort()
-      .map(nombre => {
-        const rows = CURRENT.filter(r => r.cuidadora === nombre);
-        return { nombre, n: rows.length };
-      });
+    const porCuidadora = ['Aracely','Ibeth','Genesis','Carmita'].map(nombre => {
+      const rows = CURRENT.filter(r => r.cuidadora === nombre);
+      return { nombre, n: rows.length };
+    }).filter(c => c.nombre !== 'Carmita' || c.n > 0);
     document.getElementById('cuidadoraGrid').innerHTML = porCuidadora.map(c => `
       <div class="cuidadora-card">
         <div class="name">${c.nombre}</div>
@@ -362,7 +328,7 @@
     empty.style.display = CURRENT.length ? 'none' : 'block';
 
     for (const r of CURRENT) {
-      const tieneNoche = !!(r.como_durmio || r.veces_desperto || r.como_amanecio || r.hora_acostada);
+      const tieneNoche = r.cuidadora === 'Ibeth' || !!(r.como_durmio || r.veces_desperto || r.como_amanecio || r.hora_acostada);
       const tieneDia = !tieneNoche || !!(r.desayuno || r.almuerzo || r.merienda || r.hidratacion);
       const dificultad = arr(r.medicacion).some(m => m.toLowerCase().includes('dificultad'));
       const comidas = tieneDia
@@ -403,19 +369,17 @@
   });
 
   async function load(){
-    const { data, error } = await sb.from('care_reports')
-      .select('*')
-      .order('report_date', { ascending:true });
+    const { data, error } = await sb.from('reportes_aracely').select('*').order('fecha', { ascending:true });
     if (error) {
       document.getElementById('empty').style.display = 'block';
       document.getElementById('empty').textContent = 'No se pudo cargar el historial. Revisa la conexión.';
       console.error(error);
       return;
     }
-    ALL = (data || []).map(mapRow);
+    ALL = data;
     applyRange();
   }
-  initOwner().then((session) => { if (session) load(); });
+  load();
 </script>
 </body>
 </html>
