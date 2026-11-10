@@ -1,211 +1,634 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Sesión cognitiva del hogar</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Reporte diario — Rosita</title>
+<link rel="apple-touch-icon" href="icono-reporte-rosita.png">
+<link rel="icon" type="image/png" href="icono-reporte-rosita.png">
+<meta name="apple-mobile-web-app-title" content="Rosita">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}body{font-family:Georgia,serif;margin:0;background:#faf6ed;color:#2b2b2b;padding:16px}
-.wrap{max-width:560px;margin:auto}
-.card{background:#fff;border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-h2{font-size:19px;margin:0 0 12px}
-label{font-weight:700;display:block;margin:0}
-.opts{display:flex;gap:8px;flex-wrap:wrap}
-.opts button{flex:1;padding:12px 8px;border:1px solid #e8e0d0;background:#fbf7ee;border-radius:12px;font:inherit;cursor:pointer}
-.opts button.sel{background:#dbe8d8;border-color:#2d4a2f;color:#2d4a2f;font-weight:700}
-input,textarea{width:100%;padding:13px;border:1px solid #e8e0d0;background:#fbf7ee;border-radius:12px;font:inherit}
-textarea{min-height:90px;resize:vertical}
-.btn{width:100%;padding:16px;border:0;border-radius:14px;background:#2d4a2f;color:#fff;font-weight:700;font-size:18px;margin-top:14px;cursor:pointer}
-.btn:disabled{opacity:.5}
-.err{color:#b42318;text-align:center;margin:14px 0}
-.ok{color:#067647;text-align:center;margin:14px 0}
-.mut{color:#8a8578;font-size:13px;text-align:center}
-footer{text-align:center;color:#8a8578;font-size:13px;margin:18px 0}
-.req{color:#b42318}
+  :root{
+    --paper: #FAF6EE;
+    --paper-line: #E7DFCC;
+    --ink: #2B2620;
+    --ink-soft: #6B6355;
+    --sage: #5C7255;
+    --sage-deep: #3F5638;
+    --brick: #B85138;
+    --brick-soft: #F3E4DE;
+    --card: #FFFFFF;
+    --shadow: 0 1px 2px rgba(43,38,32,0.06), 0 8px 24px rgba(43,38,32,0.05);
+    --radius: 14px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    line-height:1.45;
+    padding-bottom: 80px;
+  }
+
+  .top{
+    padding: 34px 20px 18px;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sage-deep);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:6px; height:6px;
+    border-radius:50%;
+    background: var(--sage);
+    display:inline-block;
+  }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(28px, 7vw, 38px);
+    margin: 6px 0 4px;
+    letter-spacing: -0.01em;
+  }
+  h1 em{
+    font-style: italic;
+    font-weight: 500;
+    color: var(--sage-deep);
+  }
+
+  .sub{
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    max-width: 46ch;
+  }
+
+  .datebar{
+    max-width: 620px;
+    margin: 18px auto 0;
+    padding: 0 20px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .datebar label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    white-space:nowrap;
+  }
+  .datebar input, .datebar select{
+    font-family: 'Work Sans', sans-serif;
+    font-size: 15px;
+    border: 1px solid var(--paper-line);
+    background: var(--card);
+    border-radius: 10px;
+    padding: 9px 11px;
+    color: var(--ink);
+  }
+  .datebar input{ flex:1; }
+
+  form{
+    max-width: 620px;
+    margin: 22px auto 0;
+    padding: 0 20px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  fieldset{
+    border: 1px solid var(--paper-line);
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 18px 16px;
+  }
+
+  legend{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 16.5px;
+    padding: 0 4px;
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+  }
+  legend .req{ color: var(--brick); font-size: 13px; }
+  legend .opt{ color: var(--ink-soft); font-weight:400; font-size: 12.5px; font-family:'Work Sans',sans-serif; }
+
+  .hint{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: -2px 0 12px;
+  }
+
+  .opts{ display:flex; flex-direction:column; gap:2px; }
+
+  .opt-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding: 11px 8px;
+    border-radius: 10px;
+    cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opt-row:active{ background: #F3EEE0; }
+
+  .opt-row input[type="checkbox"],
+  .opt-row input[type="radio"]{
+    width: 20px;
+    height: 20px;
+    flex-shrink:0;
+    accent-color: var(--sage-deep);
+  }
+
+  .opt-row span{ font-size: 15px; }
+
+  .grid3{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .pill{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding: 12px 6px;
+    border-radius: 10px;
+    border: 1.5px solid var(--paper-line);
+    font-size: 14px;
+    cursor:pointer;
+    background: var(--paper);
+    transition: border-color .12s, background .12s;
+  }
+  .pill input{ display:none; }
+  .pill:has(input:checked){
+    border-color: var(--sage-deep);
+    background: #EAF0E6;
+    color: var(--sage-deep);
+    font-weight: 600;
+  }
+
+  textarea, input[type="text"]{
+    width:100%;
+    font-family:'Work Sans', sans-serif;
+    font-size: 15px;
+    border: 1.5px solid var(--paper-line);
+    border-radius: 10px;
+    padding: 11px 12px;
+    background: var(--paper);
+    color: var(--ink);
+    resize: vertical;
+  }
+  textarea{ min-height: 90px; }
+  textarea:focus, input:focus, .opt-row:has(input:focus-visible){
+    outline: 2px solid var(--sage);
+    outline-offset: 1px;
+  }
+
+  .difficulty-note{
+    font-size: 13px;
+    color: var(--brick);
+    background: var(--brick-soft);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-top: 8px;
+    display:none;
+  }
+  .difficulty-note.show{ display:block; }
+
+  .submitbar{
+    max-width: 620px;
+    margin: 4px auto 0;
+    padding: 0 20px;
+  }
+
+  button{
+    width:100%;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 17px;
+    color: #fff;
+    background: var(--sage-deep);
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    cursor:pointer;
+    box-shadow: var(--shadow);
+    transition: transform .08s, background .15s;
+  }
+  button:active{ transform: scale(0.985); }
+  button:disabled{ background: #B9BBA9; cursor:default; }
+
+  .status{
+    max-width: 620px;
+    margin: 12px auto 0;
+    padding: 0 20px;
+    font-size: 14px;
+    text-align:center;
+    color: var(--sage-deep);
+    min-height: 20px;
+  }
+  .status.err{ color: var(--brick); }
+
+  .success-screen{
+    display:none;
+    max-width: 620px;
+    margin: 60px auto;
+    padding: 0 24px;
+    text-align:center;
+  }
+  .success-screen.show{ display:block; }
+  .success-screen .mark{
+    width:56px; height:56px;
+    border-radius:50%;
+    background: var(--sage-deep);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    margin: 0 auto 18px;
+    font-size: 26px;
+  }
+  .success-screen h2{
+    font-family:'Fraunces', serif;
+    font-size: 26px;
+    margin: 0 0 8px;
+  }
+  .success-screen p{ color: var(--ink-soft); font-size: 15px; }
+  .success-screen button{
+    margin-top: 20px;
+    background: transparent;
+    border: 1.5px solid var(--paper-line);
+    color: var(--ink);
+    box-shadow:none;
+  }
+
+  footer{
+    max-width: 620px;
+    margin: 30px auto 0;
+    padding: 0 20px;
+    text-align:center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.03em;
+  }
+  footer a{ color: var(--sage-deep); }
 </style>
 </head>
 <body>
-<div class="wrap">
-<div id="status" class="mut">Cargando enlace…</div>
 
-<div id="form" style="display:none">
-<div class="card">
-<h2>Ánimo de tu familiar <span class="req">*</span></h2>
-<div class="opts" id="opt-animo">
-<button data-v="Bien">😊 Bien</button>
-<button data-v="Normal">😐 Normal</button>
-<button data-v="Decaída">😟 Decaída</button>
-</div>
+<div class="top">
+  <div class="eyebrow">Cuidado diario</div>
+  <h1>Reporte de <em>Rosita</em></h1>
+  <p class="sub">Un registro rápido del turno — cómo estuvo, cómo comió y cómo pasó el día.</p>
+  <p class="sub" style="margin-top:6px;">¿Hizo una sesión de estimulación? <a href="./sesion-cognitiva.html" style="color:var(--sage-deep);font-weight:600;">Registrar sesión cognitiva →</a></p>
 </div>
 
-<div class="card">
-<h2>¿Cuánto participó? <span class="req">*</span></h2>
-<div class="opts" id="opt-participo">
-<button data-v="Mucho">Mucho</button>
-<button data-v="Regular">Regular</button>
-<button data-v="Poco">Poco</button>
+<div class="datebar" style="flex-wrap:wrap;">
+  <label for="cuidadora">Cuidadora</label>
+  <select id="cuidadora" required style="flex:1; min-width:120px;">
+    <option value="" disabled selected>Elegir...</option>
+    <option>Aracely</option>
+    <option>Ibeth</option>
+    <option>Genesis</option>
+  </select>
 </div>
-</div>
-
-<div class="card">
-<h2>Manos <span class="req">*</span></h2>
-<div class="opts" id="opt-manos">
-<button data-v="Sin dolor">Sin dolor</button>
-<button data-v="Algo de molestia">Algo de molestia</button>
-<button data-v="Dolor (paré)">Dolor (paré)</button>
-</div>
+<div class="datebar">
+  <label for="fecha">Fecha</label>
+  <input type="date" id="fecha" required>
+  <span id="diaLabel" style="font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); margin-left:4px;"></span>
 </div>
 
-<div class="card">
-<h2>Lo más lindo o importante de hoy <span style="font-weight:400">(opcional)</span></h2>
-<textarea id="f-lindo" placeholder="Ej: Recordó una canción…"></textarea>
+<form id="reportForm" novalidate>
+
+  <fieldset>
+    <legend>Estado general de la Sra. Rosita</legend>
+    <div class="opts" data-group="estado_general">
+      <label class="opt-row"><input type="checkbox" value="Tranquila y de buen humor"><span>Tranquila y de buen humor</span></label>
+      <label class="opt-row"><input type="checkbox" value="Conversadora / sociable"><span>Conversadora / sociable</span></label>
+      <label class="opt-row"><input type="checkbox" value="Callada / retraída"><span>Callada / retraída</span></label>
+      <label class="opt-row"><input type="checkbox" value="Algo confundida"><span>Algo confundida</span></label>
+      <label class="opt-row"><input type="checkbox" value="Inquieta o ansiosa"><span>Inquieta o ansiosa</span></label>
+    </div>
+  </fieldset>
+
+  <div id="camposDia">
+  <fieldset>
+    <legend>Desayuno <span class="req">*</span></legend>
+    <div class="grid3" data-group-radio="desayuno">
+      <label class="pill"><input type="radio" name="desayuno" value="Bien"><span>Bien</span></label>
+      <label class="pill"><input type="radio" name="desayuno" value="Poco"><span>Poco</span></label>
+      <label class="pill"><input type="radio" name="desayuno" value="No quiso"><span>No quiso</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Almuerzo <span class="req">*</span></legend>
+    <div class="grid3" data-group-radio="almuerzo">
+      <label class="pill"><input type="radio" name="almuerzo" value="Bien"><span>Bien</span></label>
+      <label class="pill"><input type="radio" name="almuerzo" value="Poco"><span>Poco</span></label>
+      <label class="pill"><input type="radio" name="almuerzo" value="No quiso"><span>No quiso</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Merienda <span class="req">*</span></legend>
+    <div class="grid3" data-group-radio="merienda">
+      <label class="pill"><input type="radio" name="merienda" value="Bien"><span>Bien</span></label>
+      <label class="pill"><input type="radio" name="merienda" value="Poco"><span>Poco</span></label>
+      <label class="pill"><input type="radio" name="merienda" value="No quiso"><span>No quiso</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Hidratación durante el día <span class="req">*</span></legend>
+    <div class="grid3" data-group-radio="hidratacion">
+      <label class="pill"><input type="radio" name="hidratacion" value="Buena"><span>Buena</span></label>
+      <label class="pill"><input type="radio" name="hidratacion" value="Regular"><span>Regular</span></label>
+      <label class="pill"><input type="radio" name="hidratacion" value="Escasa"><span>Escasa</span></label>
+    </div>
+  </fieldset>
+  </div>
+
+  <div id="camposNoche">
+  <fieldset>
+    <legend>Hora en que se acostó</legend>
+    <input type="time" id="horaAcostada">
+  </fieldset>
+
+  <fieldset>
+    <legend>¿Cómo se durmió? <span class="req">*</span></legend>
+    <div class="grid3" data-group-radio="como_durmio">
+      <label class="pill"><input type="radio" name="como_durmio" value="Fácilmente"><span>Fácilmente</span></label>
+      <label class="pill"><input type="radio" name="como_durmio" value="Con dificultad"><span>Con dificultad</span></label>
+      <label class="pill"><input type="radio" name="como_durmio" value="Se resistió"><span>Se resistió</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Veces que se despertó en la noche <span class="req">*</span></legend>
+    <div class="grid3" data-group-radio="veces_desperto">
+      <label class="pill"><input type="radio" name="veces_desperto" value="Ninguna"><span>Ninguna</span></label>
+      <label class="pill"><input type="radio" name="veces_desperto" value="1-2 veces"><span>1-2 veces</span></label>
+      <label class="pill"><input type="radio" name="veces_desperto" value="3 o más"><span>3 o más</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Motivo del despertar <span class="opt">(si aplica)</span></legend>
+    <div class="opts" data-group="motivo_despertar">
+      <label class="opt-row"><input type="checkbox" value="Ir al baño"><span>Ir al baño</span></label>
+      <label class="opt-row"><input type="checkbox" value="Dolor o malestar"><span>Dolor o malestar</span></label>
+      <label class="opt-row"><input type="checkbox" value="Confusión o ansiedad"><span>Confusión o ansiedad</span></label>
+      <label class="opt-row"><input type="checkbox" value="Sin motivo aparente"><span>Sin motivo aparente</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Fue al baño durante la noche <span class="req">*</span></legend>
+    <div class="grid3" data-group-radio="fue_al_bano_noche">
+      <label class="pill"><input type="radio" name="fue_al_bano_noche" value="No"><span>No</span></label>
+      <label class="pill"><input type="radio" name="fue_al_bano_noche" value="Sí, sola"><span>Sí, sola</span></label>
+      <label class="pill"><input type="radio" name="fue_al_bano_noche" value="Sí, con ayuda"><span>Sí, con ayuda</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>¿Cómo amaneció? <span class="req">*</span></legend>
+    <div class="grid3" data-group-radio="como_amanecio">
+      <label class="pill"><input type="radio" name="como_amanecio" value="Descansada"><span>Descansada</span></label>
+      <label class="pill"><input type="radio" name="como_amanecio" value="Cansada"><span>Cansada</span></label>
+      <label class="pill"><input type="radio" name="como_amanecio" value="Irritable"><span>Irritable</span></label>
+    </div>
+  </fieldset>
+  </div>
+
+  <fieldset>
+    <legend>Medicación <span class="req">*</span></legend>
+    <div class="opts" data-group="medicacion">
+      <label class="opt-row"><input type="checkbox" value="Administrada correctamente"><span>Administrada correctamente</span></label>
+      <label class="opt-row"><input type="checkbox" value="Hubo alguna dificultad" id="dificultadChk"><span>Hubo alguna dificultad (especificar en Observaciones)</span></label>
+    </div>
+    <div class="difficulty-note" id="dificultadNote">Por favor cuéntame qué pasó en el campo de Observaciones, más abajo.</div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Presión arterial <span class="opt">(si se tomó hoy)</span></legend>
+    <input type="text" id="presion" placeholder="Ej. 130/72" autocomplete="off">
+  </fieldset>
+
+  <div id="camposDia2">
+  <fieldset>
+    <legend>Actividades del día</legend>
+    <div class="opts" data-group="actividades">
+      <label class="opt-row"><input type="checkbox" value="Caminó"><span>Caminó</span></label>
+      <label class="opt-row"><input type="checkbox" value="Escuchó música"><span>Escuchó música</span></label>
+      <label class="opt-row"><input type="checkbox" value="Conversó con la cuidadora"><span>Conversó con la cuidadora</span></label>
+      <label class="opt-row"><input type="checkbox" value="Salió al exterior / jardín"><span>Salió al exterior / jardín</span></label>
+      <label class="opt-row"><input type="checkbox" value="Terapia ocupacional"><span>Terapia ocupacional</span></label>
+      <label class="opt-row"><input type="checkbox" value="Descansó / durmió siesta"><span>Descansó / durmió siesta</span></label>
+    </div>
+  </fieldset>
+  </div>
+
+  <fieldset>
+    <legend>Estado de la casa <span class="req">*</span></legend>
+    <div class="opts" data-group="estado_casa">
+      <label class="opt-row"><input type="checkbox" value="Ordenada y limpia"><span>Ordenada y limpia</span></label>
+      <label class="opt-row"><input type="checkbox" value="Requirió limpieza"><span>Requirió limpieza</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Observaciones</legend>
+    <p class="hint">Incluir aquí cualquier novedad: caída, malestar, dificultad con medicación, etc.</p>
+    <textarea id="observaciones" placeholder="Escriba aquí..."></textarea>
+  </fieldset>
+
+  <div class="submitbar">
+    <button type="submit" id="submitBtn">Enviar reporte</button>
+  </div>
+  <div class="status" id="status"></div>
+</form>
+
+<div class="success-screen" id="successScreen">
+  <div class="mark">✓</div>
+  <h2>Reporte enviado</h2>
+  <p>Gracias — quedó registrado el reporte de hoy para Rosita.</p>
+  <button type="button" onclick="location.reload()">Enviar otro reporte</button>
 </div>
 
-<div class="card">
-<h2>Materiales que faltan <span style="font-weight:400">(opcional)</span></h2>
-<input id="f-materiales" placeholder="Ej: Lana etc" />
-</div>
+<footer>reporte diario · rosita</footer>
 
-<p class="mut">Las fotos y videos siga enviándolos por WhatsApp.</p>
-<button class="btn" id="btn-enviar">Enviar sesión</button>
-<div id="msg"></div>
-</div>
-
-<footer>sesión cognitiva del hogar</footer>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
 <script>
-// ARCHIVO TOTAL YA MODIFICADO - SIN CDN - Copiar todo este archivo y pegar en index.html
-var SUPABASE_URL = "https://ywegbbdnphbbqiimqhqf.supabase.co";
-var SUPABASE_ANON_KEY = "sb_publishable_3RLMrZi5yuz9kxeAiMkSMw_y4foVtyu";
-var ADMIN_PIN = "";
-var TOKEN_EXPIRY_HOURS = 72;
-var H = {apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json'};
-var DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-var esc = function(s){ return String(s ?? '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]); }); };
-var arr = function(a){ return Array.isArray(a) ? a : []; };
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Estado
-var sel = {animo:'Bien', participo:'Mucho', manos:'Sin dolor'};
-function markSel(id, val){
-  var c = document.getElementById(id);
-  c.querySelectorAll('button').forEach(function(b){ b.classList.toggle('sel', b.dataset.v === val); });
-}
-['opt-animo','opt-participo','opt-manos'].forEach(function(id){
-  document.getElementById(id).addEventListener('click', function(e){
-    var b = e.target.closest('button'); if(!b) return;
-    if(id==='opt-animo') sel.animo = b.dataset.v;
-    if(id==='opt-participo') sel.participo = b.dataset.v;
-    if(id==='opt-manos') sel.manos = b.dataset.v;
-    markSel(id, b.dataset.v);
+  const cuidadoraSelect = document.getElementById('cuidadora');
+  const savedCuidadora = localStorage.getItem('cuidadora_reporte_rosita');
+  if (savedCuidadora) cuidadoraSelect.value = savedCuidadora;
+
+  const camposDia = document.getElementById('camposDia');
+  const camposDia2 = document.getElementById('camposDia2');
+  const camposNoche = document.getElementById('camposNoche');
+
+  // Turnos: Aracely = día, Ibeth = noche, Genesis = completo (día + noche, fines de semana con pernocta)
+  function turnoDe(nombre){
+    if (nombre === 'Ibeth') return 'noche';
+    if (nombre === 'Genesis') return 'completo';
+    return 'dia';
+  }
+  function syncTurnoFields(){
+    const t = turnoDe(cuidadoraSelect.value);
+    const verDia = t !== 'noche';
+    const verNoche = t !== 'dia';
+    camposDia.style.display = verDia ? '' : 'none';
+    camposDia2.style.display = verDia ? '' : 'none';
+    camposNoche.style.display = verNoche ? '' : 'none';
+  }
+  cuidadoraSelect.addEventListener('change', () => {
+    localStorage.setItem('cuidadora_reporte_rosita', cuidadoraSelect.value);
+    syncTurnoFields();
   });
-});
-markSel('opt-animo','Bien'); markSel('opt-participo','Mucho'); markSel('opt-manos','Sin dolor');
+  syncTurnoFields();
 
-// Token: ?token=XXX o ?id=XXX o ?t=XXX
-function getToken(){
-  var p = new URLSearchParams(location.search);
-  return p.get('token') || p.get('id') || p.get('t') || p.get('link') || '';
-}
-var token = getToken();
-var caregiverReady = false;
-var invalidToken = false;
+  const fechaInput = document.getElementById('fecha');
+  const diaLabel = document.getElementById('diaLabel');
+  const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
-async function init(){
-  var status = document.getElementById('status');
-  var form = document.getElementById('form');
-  var msg = document.getElementById('msg');
-  // Si no hay token, mostramos el form igual pero avisamos - no dejamos pantalla en blanco
-  if(!token){
-    status.textContent = 'Este enlace no tiene token. Pida uno nuevo.';
-    status.className = 'err';
-    form.style.display = 'block';
-    // Dejamos enviar igual, se guardará sin token para no perder la sesión
-    caregiverReady = true;
-    return;
+  function todayLocal(){
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
   }
-  // Intentamos validar el token en Supabase con fetch (sin CDN)
-  try{
-    var url = SUPABASE_URL + '/rest/v1/sesiones_cognitivas?select=*&token=eq.' + encodeURIComponent(token);
-    var r = await fetch(url, {headers: H});
-    if(r.ok){
-      var j = await r.json();
-      if(j && j.length){
-        caregiverReady = true;
-        invalidToken = false;
-        status.textContent = 'Enlace válido ✓';
-        status.className = 'ok';
-        form.style.display = 'block';
-        return;
-      }
-    }
-    // Si la tabla no existe o el token no está, NO dejamos pantalla en blanco:
-    // Mostramos form y dejamos guardar. El token puede ser de otra tabla (caregivers / enlaces)
-    // Probamos segunda tabla
-    var r2 = await fetch(SUPABASE_URL + '/rest/v1/caregivers?select=*&token=eq.' + encodeURIComponent(token), {headers: H});
-    if(r2.ok){
-      var j2 = await r2.json();
-      if(j2 && j2.length){
-        caregiverReady = true;
-        status.textContent = 'Enlace válido ✓';
-        status.className = 'ok';
-        form.style.display = 'block';
-        return;
-      }
-    }
-    // Token no encontrado, pero mostramos form para no perder la sesión
-    caregiverReady = true;
-    invalidToken = false;
-    status.textContent = 'Enlace no encontrado en la base, pero puede enviar la sesión igual. Se guardará con este enlace.';
-    status.className = 'mut';
-    form.style.display = 'block';
-  }catch(e){
-    caregiverReady = true;
-    status.textContent = 'Sin conexión a la base, pero puede enviar la sesión. Se intentará guardar.';
-    status.className = 'mut';
-    form.style.display = 'block';
-  }
-}
+  fechaInput.value = todayLocal();
 
-document.getElementById('btn-enviar').addEventListener('click', async function(){
-  var msg = document.getElementById('msg');
-  if(!sel.animo || !sel.participo || !sel.manos){
-    msg.textContent = 'Por favor elija ánimo, participación y manos.';
-    msg.className = 'err';
-    return;
+  function syncDia(){
+    const d = new Date(fechaInput.value + 'T12:00:00');
+    diaLabel.textContent = DIAS[d.getDay()];
   }
-  msg.textContent = 'Enviando…';
-  msg.className = 'mut';
-  var payload = {
-    token: token || null,
-    fecha: new Date().toISOString().slice(0,10),
-    animo: sel.animo,
-    participo: sel.participo,
-    manos: sel.manos,
-    lindo: document.getElementById('f-lindo').value || null,
-    materiales_faltan: document.getElementById('f-materiales').value || null,
-    created_at: new Date().toISOString()
-  };
-  try{
-    var r = await fetch(SUPABASE_URL + '/rest/v1/sesiones_cognitivas', {method:'POST', headers:{...H, Prefer:'return=representation'}, body: JSON.stringify(payload)});
-    if(!r.ok){
-      // Si la tabla tiene otro nombre de columnas, intentamos con nombres simples
-      var txt = await r.text();
-      msg.textContent = 'No se pudo guardar en la base: ' + txt.slice(0,200) + '. Tome captura y envíela por WhatsApp.';
-      msg.className = 'err';
+  fechaInput.addEventListener('change', syncDia);
+  syncDia();
+
+  const dificultadChk = document.getElementById('dificultadChk');
+  const dificultadNote = document.getElementById('dificultadNote');
+  dificultadChk.addEventListener('change', () => {
+    dificultadNote.classList.toggle('show', dificultadChk.checked);
+  });
+
+  function getChecked(groupName){
+    return Array.from(document.querySelectorAll(`[data-group="${groupName}"] input:checked`)).map(i => i.value);
+  }
+  function getRadio(name){
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : null;
+  }
+
+  const form = document.getElementById('reportForm');
+  const statusEl = document.getElementById('status');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.textContent = '';
+    statusEl.classList.remove('err');
+
+    const cuidadora = document.getElementById('cuidadora').value;
+    const turno = turnoDe(cuidadora);
+    const hayDia = turno !== 'noche';
+    const hayNoche = turno !== 'dia';
+    const desayuno = hayDia ? getRadio('desayuno') : null;
+    const estadoCasa = getChecked('estado_casa');
+
+    if (!cuidadora) {
+      statusEl.textContent = 'Por favor selecciona quién está enviando el reporte.';
+      statusEl.classList.add('err');
       return;
     }
-    msg.textContent = 'Sesión enviada ✓ Gracias.';
-    msg.className = 'ok';
-    document.getElementById('f-lindo').value = '';
-    document.getElementById('f-materiales').value = '';
-  }catch(e){
-    msg.textContent = 'Error de conexión. Tome captura y envíela por WhatsApp: ' + e.message;
-    msg.className = 'err';
-  }
-});
 
-init();
+    let almuerzo = null, merienda = null, hidratacion = null;
+    let comoDurmio = null, vecesDesperto = null, fueAlBanoNoche = null, comoAmanecio = null;
+
+    let faltan = estadoCasa.length === 0;
+
+    if (hayNoche) {
+      comoDurmio = getRadio('como_durmio');
+      vecesDesperto = getRadio('veces_desperto');
+      fueAlBanoNoche = getRadio('fue_al_bano_noche');
+      comoAmanecio = getRadio('como_amanecio');
+      if (!comoDurmio || !vecesDesperto || !fueAlBanoNoche || !comoAmanecio) faltan = true;
+    }
+    if (hayDia) {
+      almuerzo = getRadio('almuerzo');
+      merienda = getRadio('merienda');
+      hidratacion = getRadio('hidratacion');
+      if (!desayuno || !almuerzo || !merienda || !hidratacion) faltan = true;
+    }
+    if (faltan) {
+      statusEl.textContent = 'Por favor completa todos los campos marcados con *.';
+      statusEl.classList.add('err');
+      return;
+    }
+
+    const payload = {
+      cuidadora,
+      fecha: fechaInput.value,
+      dia_turno: DIAS[new Date(fechaInput.value + 'T12:00:00').getDay()],
+      estado_general: getChecked('estado_general'),
+      desayuno, almuerzo, merienda, hidratacion,
+      medicacion: getChecked('medicacion'),
+      presion_arterial: document.getElementById('presion').value.trim() || null,
+      actividades: hayDia ? getChecked('actividades') : [],
+      estado_casa: estadoCasa,
+      observaciones: document.getElementById('observaciones').value.trim() || null,
+      hora_acostada: hayNoche ? (document.getElementById('horaAcostada').value || null) : null,
+      como_durmio: comoDurmio,
+      veces_desperto: vecesDesperto,
+      motivo_despertar: hayNoche ? getChecked('motivo_despertar') : [],
+      fue_al_bano_noche: fueAlBanoNoche,
+      como_amanecio: comoAmanecio,
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    const { error } = await sb.from('reportes_aracely').insert(payload);
+
+    if (error) {
+      statusEl.textContent = 'No se pudo enviar. Revisa tu conexión e intenta de nuevo.';
+      statusEl.classList.add('err');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar reporte';
+      console.error(error);
+      return;
+    }
+
+    form.style.display = 'none';
+    document.querySelector('.top').style.display = 'none';
+    document.querySelectorAll('.datebar').forEach(el => el.style.display = 'none');
+    document.getElementById('successScreen').classList.add('show');
+  });
 </script>
 </body>
 </html>
