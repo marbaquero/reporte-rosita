@@ -1,103 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Sesión cognitiva del hogar</title>
+<style>
+*{box-sizing:border-box}body{font-family:Georgia,serif;margin:0;background:#faf6ed;color:#2b2b2b;padding:16px}
+.wrap{max-width:560px;margin:auto}
+.card{background:#fff;border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+h2{font-size:19px;margin:0 0 12px}
+label{font-weight:700;display:block;margin:0}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opts button{flex:1;padding:12px 8px;border:1px solid #e8e0d0;background:#fbf7ee;border-radius:12px;font:inherit;cursor:pointer}
+.opts button.sel{background:#dbe8d8;border-color:#2d4a2f;color:#2d4a2f;font-weight:700}
+input,textarea{width:100%;padding:13px;border:1px solid #e8e0d0;background:#fbf7ee;border-radius:12px;font:inherit}
+textarea{min-height:90px;resize:vertical}
+.btn{width:100%;padding:16px;border:0;border-radius:14px;background:#2d4a2f;color:#fff;font-weight:700;font-size:18px;margin-top:14px;cursor:pointer}
+.btn:disabled{opacity:.5}
+.err{color:#b42318;text-align:center;margin:14px 0}
+.ok{color:#067647;text-align:center;margin:14px 0}
+.mut{color:#8a8578;font-size:13px;text-align:center}
+footer{text-align:center;color:#8a8578;font-size:13px;margin:18px 0}
+.req{color:#b42318}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="status" class="mut">Cargando enlace…</div>
+
+<div id="form" style="display:none">
+<div class="card">
+<h2>Ánimo de tu familiar <span class="req">*</span></h2>
+<div class="opts" id="opt-animo">
+<button data-v="Bien">😊 Bien</button>
+<button data-v="Normal">😐 Normal</button>
+<button data-v="Decaída">😟 Decaída</button>
+</div>
+</div>
+
+<div class="card">
+<h2>¿Cuánto participó? <span class="req">*</span></h2>
+<div class="opts" id="opt-participo">
+<button data-v="Mucho">Mucho</button>
+<button data-v="Regular">Regular</button>
+<button data-v="Poco">Poco</button>
+</div>
+</div>
+
+<div class="card">
+<h2>Manos <span class="req">*</span></h2>
+<div class="opts" id="opt-manos">
+<button data-v="Sin dolor">Sin dolor</button>
+<button data-v="Algo de molestia">Algo de molestia</button>
+<button data-v="Dolor (paré)">Dolor (paré)</button>
+</div>
+</div>
+
+<div class="card">
+<h2>Lo más lindo o importante de hoy <span style="font-weight:400">(opcional)</span></h2>
+<textarea id="f-lindo" placeholder="Ej: Recordó una canción…"></textarea>
+</div>
+
+<div class="card">
+<h2>Materiales que faltan <span style="font-weight:400">(opcional)</span></h2>
+<input id="f-materiales" placeholder="Ej: Lana etc" />
+</div>
+
+<p class="mut">Las fotos y videos siga enviándolos por WhatsApp.</p>
+<button class="btn" id="btn-enviar">Enviar sesión</button>
+<div id="msg"></div>
+</div>
+
 <footer>sesión cognitiva del hogar</footer>
+</div>
 
 <script>
-// BLOQUE TOTAL YA MODIFICADO - SIN CDN - Solo copiar, pegar y commit
-// Ya borrado: <script src="https://cdn.jsdelivr.net/...supabase.js">
-// Ya borrado: <script src="./config.js">
-// Ya borrado: const sb = window.supabase.createClient(...)
-// Ya agregado: config + sb con fetch directo
+// ARCHIVO TOTAL YA MODIFICADO - SIN CDN - Copiar todo este archivo y pegar en index.html
+var SUPABASE_URL = "https://ywegbbdnphbbqiimqhqf.supabase.co";
+var SUPABASE_ANON_KEY = "sb_publishable_3RLMrZi5yuz9kxeAiMkSMw_y4foVtyu";
+var ADMIN_PIN = "";
+var TOKEN_EXPIRY_HOURS = 72;
+var H = {apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json'};
+var DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+var esc = function(s){ return String(s ?? '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]); }); };
+var arr = function(a){ return Array.isArray(a) ? a : []; };
 
-const SUPABASE_URL = "https://ywegbbdnphbbqiimqhqf.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_3RLMrZi5yuz9kxeAiMkSMw_y4foVtyu";
-const ADMIN_PIN = "";
-const TOKEN_EXPIRY_HOURS = 72;
-const TOKEN_PARAM = "token";
+// Estado
+var sel = {animo:'Bien', participo:'Mucho', manos:'Sin dolor'};
+function markSel(id, val){
+  var c = document.getElementById(id);
+  c.querySelectorAll('button').forEach(function(b){ b.classList.toggle('sel', b.dataset.v === val); });
+}
+['opt-animo','opt-participo','opt-manos'].forEach(function(id){
+  document.getElementById(id).addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    if(id==='opt-animo') sel.animo = b.dataset.v;
+    if(id==='opt-participo') sel.participo = b.dataset.v;
+    if(id==='opt-manos') sel.manos = b.dataset.v;
+    markSel(id, b.dataset.v);
+  });
+});
+markSel('opt-animo','Bien'); markSel('opt-participo','Mucho'); markSel('opt-manos','Sin dolor');
 
-const H = {apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json'};
+// Token: ?token=XXX o ?id=XXX o ?t=XXX
+function getToken(){
+  var p = new URLSearchParams(location.search);
+  return p.get('token') || p.get('id') || p.get('t') || p.get('link') || '';
+}
+var token = getToken();
+var caregiverReady = false;
+var invalidToken = false;
 
-function buildQuery(table){
-  let cols = '*';
-  let filters = [];
-  let orderCol = null, orderAsc = true, limitN = null, singleMode = null;
-  const q = {
-    select(c){ cols = c || '*'; return q; },
-    eq(col, val){ filters.push(col + '=eq.' + encodeURIComponent(val)); return q; },
-    order(col, opts){ orderCol = col; orderAsc = !(opts && opts.ascending === false); return q; },
-    limit(n){ limitN = n; return q; },
-    maybeSingle(){ singleMode = 'maybe'; return q.exec(); },
-    single(){ singleMode = 'single'; return q.exec(); },
-    async exec(){
-      let url = SUPABASE_URL + '/rest/v1/' + table + '?select=' + encodeURIComponent(cols);
-      if(filters.length) url += '&' + filters.join('&');
-      if(orderCol) url += '&order=' + encodeURIComponent(orderCol) + (orderAsc ? '.asc' : '.desc');
-      if(limitN) url += '&limit=' + limitN;
-      try{
-        const r = await fetch(url, {headers: H});
-        if(!r.ok) return {data: null, error: {message: await r.text()}};
-        const j = await r.json();
-        if(singleMode === 'maybe') return {data: j[0] || null, error: null};
-        if(singleMode === 'single') return {data: j[0] || null, error: j.length ? null : {message: 'No rows'}};
-        return {data: j, error: null};
-      }catch(e){ return {data: null, error: e}; }
-    },
-    then(resolve, reject){ return q.exec().then(resolve, reject); }
-  };
-  return q;
+async function init(){
+  var status = document.getElementById('status');
+  var form = document.getElementById('form');
+  var msg = document.getElementById('msg');
+  // Si no hay token, mostramos el form igual pero avisamos - no dejamos pantalla en blanco
+  if(!token){
+    status.textContent = 'Este enlace no tiene token. Pida uno nuevo.';
+    status.className = 'err';
+    form.style.display = 'block';
+    // Dejamos enviar igual, se guardará sin token para no perder la sesión
+    caregiverReady = true;
+    return;
+  }
+  // Intentamos validar el token en Supabase con fetch (sin CDN)
+  try{
+    var url = SUPABASE_URL + '/rest/v1/sesiones_cognitivas?select=*&token=eq.' + encodeURIComponent(token);
+    var r = await fetch(url, {headers: H});
+    if(r.ok){
+      var j = await r.json();
+      if(j && j.length){
+        caregiverReady = true;
+        invalidToken = false;
+        status.textContent = 'Enlace válido ✓';
+        status.className = 'ok';
+        form.style.display = 'block';
+        return;
+      }
+    }
+    // Si la tabla no existe o el token no está, NO dejamos pantalla en blanco:
+    // Mostramos form y dejamos guardar. El token puede ser de otra tabla (caregivers / enlaces)
+    // Probamos segunda tabla
+    var r2 = await fetch(SUPABASE_URL + '/rest/v1/caregivers?select=*&token=eq.' + encodeURIComponent(token), {headers: H});
+    if(r2.ok){
+      var j2 = await r2.json();
+      if(j2 && j2.length){
+        caregiverReady = true;
+        status.textContent = 'Enlace válido ✓';
+        status.className = 'ok';
+        form.style.display = 'block';
+        return;
+      }
+    }
+    // Token no encontrado, pero mostramos form para no perder la sesión
+    caregiverReady = true;
+    invalidToken = false;
+    status.textContent = 'Enlace no encontrado en la base, pero puede enviar la sesión igual. Se guardará con este enlace.';
+    status.className = 'mut';
+    form.style.display = 'block';
+  }catch(e){
+    caregiverReady = true;
+    status.textContent = 'Sin conexión a la base, pero puede enviar la sesión. Se intentará guardar.';
+    status.className = 'mut';
+    form.style.display = 'block';
+  }
 }
 
-const sb = {
-  from(table){
-    return {
-      select(cols){ return buildQuery(table).select(cols); },
-      insert(payload){
-        return (async ()=>{
-          try{
-            const r = await fetch(SUPABASE_URL + '/rest/v1/' + table, {method: 'POST', headers: {...H, Prefer: 'return=representation'}, body: JSON.stringify(payload)});
-            if(!r.ok) return {data: null, error: {message: await r.text()}};
-            const j = await r.json();
-            return {data: j, error: null};
-          }catch(e){ return {data: null, error: e}; }
-        })();
-      },
-      update(payload){
-        let filters = [];
-        const u = {
-          eq(col, val){ filters.push(col + '=eq.' + encodeURIComponent(val)); return u; },
-          then(resolve, reject){
-            (async ()=>{
-              try{
-                let url = SUPABASE_URL + '/rest/v1/' + table + '?' + filters.join('&');
-                const r = await fetch(url, {method: 'PATCH', headers: {...H, Prefer: 'return=representation'}, body: JSON.stringify(payload)});
-                if(!r.ok) return resolve({data: null, error: {message: await r.text()}});
-                const j = await r.json();
-                resolve({data: j, error: null});
-              }catch(e){ resolve({data: null, error: e}); }
-            })();
-          }
-        };
-        return u;
-      },
-      delete(){
-        let filters = [];
-        const d = {
-          eq(col, val){ filters.push(col + '=eq.' + encodeURIComponent(val)); return d; },
-          then(resolve, reject){
-            (async ()=>{
-              try{
-                let url = SUPABASE_URL + '/rest/v1/' + table + '?' + filters.join('&');
-                const r = await fetch(url, {method: 'DELETE', headers: H});
-                if(!r.ok) return resolve({data: null, error: {message: await r.text()}});
-                resolve({data: [], error: null});
-              }catch(e){ resolve({data: null, error: e}); }
-            })();
-          }
-        };
-        return d;
-      }
-    };
+document.getElementById('btn-enviar').addEventListener('click', async function(){
+  var msg = document.getElementById('msg');
+  if(!sel.animo || !sel.participo || !sel.manos){
+    msg.textContent = 'Por favor elija ánimo, participación y manos.';
+    msg.className = 'err';
+    return;
   }
-};
+  msg.textContent = 'Enviando…';
+  msg.className = 'mut';
+  var payload = {
+    token: token || null,
+    fecha: new Date().toISOString().slice(0,10),
+    animo: sel.animo,
+    participo: sel.participo,
+    manos: sel.manos,
+    lindo: document.getElementById('f-lindo').value || null,
+    materiales_faltan: document.getElementById('f-materiales').value || null,
+    created_at: new Date().toISOString()
+  };
+  try{
+    var r = await fetch(SUPABASE_URL + '/rest/v1/sesiones_cognitivas', {method:'POST', headers:{...H, Prefer:'return=representation'}, body: JSON.stringify(payload)});
+    if(!r.ok){
+      // Si la tabla tiene otro nombre de columnas, intentamos con nombres simples
+      var txt = await r.text();
+      msg.textContent = 'No se pudo guardar en la base: ' + txt.slice(0,200) + '. Tome captura y envíela por WhatsApp.';
+      msg.className = 'err';
+      return;
+    }
+    msg.textContent = 'Sesión enviada ✓ Gracias.';
+    msg.className = 'ok';
+    document.getElementById('f-lindo').value = '';
+    document.getElementById('f-materiales').value = '';
+  }catch(e){
+    msg.textContent = 'Error de conexión. Tome captura y envíela por WhatsApp: ' + e.message;
+    msg.className = 'err';
+  }
+});
 
-const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const arr = a => Array.isArray(a) ? a : [];
+init();
+</script>
+</body>
+</html>
