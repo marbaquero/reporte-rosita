@@ -514,7 +514,7 @@
   if (location.hash === '#historial') showTab(true);
   if (invalidToken) showInvalidToken();
 </script>
-  <!-- FIX ADMIN - BORRAR SESIONES COGNITIVAS -->
+ 
 <script>
 (function(){
   // 1. Crear botón si no existe
@@ -578,6 +578,94 @@
       });
     });
   });
+})();
+</script>
+  <!-- FIX ADMIN V2 - IGUAL QUE REPORTES DIARIOS -->
+<script>
+(function(){
+  var controls = document.querySelector('#vistaHist .controls');
+  if(!controls) return;
+  var oldBtn = document.getElementById('adminToggle');
+  var btn;
+  if(oldBtn){
+    btn = oldBtn.cloneNode(true);
+    oldBtn.parentNode.replaceChild(btn, oldBtn);
+  } else {
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'adminToggle';
+    btn.textContent = 'Modo administrador';
+    controls.appendChild(btn);
+  }
+  var isAdmin = false;
+  function setAdmin(on){
+    isAdmin = on;
+    btn.textContent = on ? 'Salir de modo administrador' : 'Modo administrador';
+    btn.style.background = on ? '#b91c1c' : '';
+    btn.style.color = on ? '#fff' : '';
+    btn.style.borderColor = on ? '#b91c1c' : '';
+    if(!on){
+      document.querySelectorAll('.cog-delete-btn').forEach(function(b){ b.remove(); });
+    } else {
+      addDeleteButtons();
+    }
+  }
+  function findSessionForCard(card){
+    try{
+      var txt = card.textContent || '';
+      var m = txt.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+      if(!m) return null;
+      var fecha = m[3]+'-'+m[2]+'-'+m[1];
+      var hm = txt.match(/(\d{2}:\d{2})/);
+      var hora = hm ? hm[1] : '';
+      var list = (typeof ALL !== 'undefined') ? ALL : [];
+      var found = list.find(function(r){
+        return r.fecha === fecha && (!hora || (r.hora_inicio||'').slice(0,5) === hora);
+      });
+      if(found) return found;
+      var byDate = list.filter(function(r){ return r.fecha === fecha; });
+      if(byDate.length === 1) return byDate[0];
+      return null;
+    }catch(e){ return null; }
+  }
+  function addDeleteButtons(){
+    var listEl = document.getElementById('list');
+    if(!listEl) return;
+    Array.from(listEl.children).forEach(function(card){
+      if(card.querySelector('.cog-delete-btn')) return;
+      var sess = findSessionForCard(card);
+      if(!sess) return;
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'margin-top:10px;display:flex;gap:8px;';
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'cog-delete-btn';
+      del.textContent = 'Eliminar esta sesión';
+      del.style.cssText = 'background:#fdecea;color:#b91c1c;border:1px solid #f5c6c0;padding:6px 10px;border-radius:999px;font-size:12px;cursor:pointer;';
+      del.addEventListener('click', function(){
+        if(!confirm('¿Borrar esta sesión del '+sess.fecha+'?')) return;
+        var client = (typeof sb !== 'undefined') ? sb : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        client.from('sesiones_cognitivas').delete().eq('id', sess.id).then(function(res){
+          if(res.error){ alert('No se pudo borrar: '+res.error.message); return; }
+          card.remove();
+        });
+      });
+      wrap.appendChild(del);
+      card.appendChild(wrap);
+    });
+  }
+  btn.addEventListener('click', function(){
+    if(isAdmin){ setAdmin(false); return; }
+    var pin = prompt('PIN de administrador:');
+    if(pin !== '1234'){ alert('PIN incorrecto'); return; }
+    setAdmin(true);
+  });
+  var listEl = document.getElementById('list');
+  if(listEl && window.MutationObserver){
+    new MutationObserver(function(){
+      if(isAdmin) addDeleteButtons();
+    }).observe(listEl, {childList:true, subtree:false});
+  }
 })();
 </script>
 </body>
