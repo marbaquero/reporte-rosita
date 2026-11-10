@@ -514,5 +514,71 @@
   if (location.hash === '#historial') showTab(true);
   if (invalidToken) showInvalidToken();
 </script>
+  <!-- FIX ADMIN - BORRAR SESIONES COGNITIVAS -->
+<script>
+(function(){
+  // 1. Crear botón si no existe
+  var controls = document.querySelector('#vistaHist .controls');
+  if(!controls) return;
+   var oldBtn = document.getElementById('adminToggle');
+  var btn;
+  if(oldBtn){
+    // Clonar quita el handler viejo que pedía PIN con ADMIN_PIN vacío
+    btn = oldBtn.cloneNode(true);
+    oldBtn.parentNode.replaceChild(btn, oldBtn);
+  } else {
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'adminToggle';
+    btn.textContent = 'Modo administrador';
+    controls.appendChild(btn);
+  }
+  btn.style.display = '';
+
+  // 2. Al dar clic, pedir PIN 1234
+  btn.addEventListener('click', function(){
+    var pin = prompt('PIN de administrador:');
+    if(pin !== '1234'){
+      alert('PIN incorrecto');
+      return;
+    }
+    // Mostrar panel de borrado
+    var viejo = document.getElementById('adminDeletePanel');
+    if(viejo) viejo.remove();
+
+    var panel = document.createElement('div');
+    panel.id = 'adminDeletePanel';
+    panel.style.cssText = 'margin:16px 0;padding:14px;background:#fff;border:2px solid #b91c1c;border-radius:12px;';
+    panel.innerHTML = '<h3 style="margin:0 0 10px;">Borrar sesiones — modo administrador</h3><p style="margin:0 0 10px;">Cargando...</p>';
+    controls.after(panel);
+
+    // Usar el mismo cliente supabase del archivo
+    var client = (typeof sb !== 'undefined') ? sb : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    client.from('sesiones_cognitivas').select('id,fecha,cuidadora,hora_inicio').order('fecha',{ascending:false}).then(function(res){
+      if(res.error){ panel.innerHTML += '<p>Error: '+res.error.message+'</p>'; return; }
+      if(!res.data || !res.data.length){ panel.innerHTML = '<p>No hay sesiones.</p>'; return; }
+      var html = '<h3 style="margin:0 0 10px;">Borrar sesiones — modo administrador</h3>';
+      res.data.forEach(function(r){
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;">'
+          + '<span>'+r.fecha+' — '+(r.cuidadora||'')+' — '+(r.hora_inicio||'')+'</span>'
+          + '<button data-del="'+r.id+'" style="background:#b91c1c;color:#fff;border:0;padding:6px 10px;border-radius:8px;cursor:pointer;">Eliminar</button>'
+          + '</div>';
+      });
+      panel.innerHTML = html;
+      panel.querySelectorAll('[data-del]').forEach(function(b){
+        b.addEventListener('click', function(){
+          if(!confirm('¿Borrar esta sesión?')) return;
+          var id = b.getAttribute('data-del');
+          client.from('sesiones_cognitivas').delete().eq('id', id).then(function(r2){
+            if(r2.error){ alert('No se pudo borrar: '+r2.error.message); return; }
+            b.closest('div').remove();
+            alert('Borrada. Recarga la página para ver la lista actualizada.');
+          });
+        });
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>
