@@ -274,9 +274,9 @@
   /* ---------- Formulario ---------- */
   const cuidadoraSelect = document.getElementById('cuidadora');
   const token = new URLSearchParams(location.search).get('t') || '';
-  let invalidToken = !token;
+  let invalidToken = false;
   let caregiver = null;
-  let caregiverReady = false;
+  let caregiverReady = !token;
   const caregiverBar = cuidadoraSelect.closest('.datebar');
   if (caregiverBar) caregiverBar.style.display = 'none';
   if (tabHist) tabHist.style.display = 'none';
