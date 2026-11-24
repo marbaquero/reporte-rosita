@@ -293,6 +293,17 @@
     letter-spacing: 0.03em;
   }
   footer a{ color: var(--sage-deep); }
+
+/* Field labels sit above their card instead of straddling the top border. */
+fieldset{position:relative!important;margin:34px 0 18px!important;padding:22px 18px 16px!important;
+  border:1px solid var(--paper-line,#E7DFCC)!important;border-radius:16px!important;
+  background:var(--card,#fff)!important;box-shadow:none!important}
+fieldset>legend{position:absolute!important;top:0!important;left:2px!important;
+  transform:translateY(-118%)!important;margin:0!important;padding:0!important;
+  display:flex;align-items:baseline;gap:6px;
+  background:transparent!important;border:0!important;
+  font-family:Georgia,"Times New Roman",serif!important;font-weight:600!important;
+  font-size:17px!important;line-height:1.2!important;color:inherit}
 </style>
 </head>
 <body>
